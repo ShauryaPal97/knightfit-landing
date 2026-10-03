@@ -1,10 +1,12 @@
 // POST /api/cal-webhook — Cal.com booking webhooks (Cal.com → Settings → Developer → Webhooks).
 // Verifies x-cal-signature-256 (HMAC-SHA256 of the raw body with CAL_WEBHOOK_SECRET), then stores the
-// booking, links it to the lead/visitor and moves the lead's stage.
+// booking, links it to the lead/visitor and moves the lead's stage. Each change is also sent to SMSLoop
+// (booked → "booked" scenario, no-show → "no_show", cancelled → AI off + coach alert).
 import crypto from 'node:crypto';
 import { send, str } from './_util.js';
 import { db } from './_db.js';
 import { sendAlert, adminLink } from './_mail.js';
+import { setScenario, aiOff } from './_smsloop.js';
 
 async function rawBody(req) {
   // Read the stream ourselves: the signature must be checked against the exact bytes Cal.com sent.
@@ -160,6 +162,16 @@ async function created(sql, req, p) {
 
   await timeline(sql, vid, 'booking_created', { uid, start_time: p.startTime, lead_id: lead?.id });
 
+  // Booked (or rescheduled: same scenario, SMSLoop only refreshes the call time).
+  // Booked without applying → SMSLoop creates the lead from this.
+  const a0 = (p.attendees && p.attendees[0]) || {};
+  await setScenario(lead?.phone || who.phone, 'booked', {
+    name: lead?.name || who.name || '',
+    email: lead?.email || who.email || '',
+    source: lead?.source === 'booking' ? 'Knight Fit booking (no application)' : 'Knight Fit application',
+    context: { call_start: p.startTime, call_end: p.endTime, timezone: a0.timeZone || p.organizer?.timeZone || '' }
+  });
+
   await sendAlert(`Call booked: ${who.name || who.email || 'someone'}`, [
     ['When', fmtTime(p.startTime, p.organizer?.timeZone)],
     ['Name', who.name], ['Email', who.email], ['Phone', who.phone],
@@ -192,6 +204,12 @@ async function cancelled(sql, req, p) {
                 AND NOT EXISTS (SELECT 1 FROM bookings WHERE lead_id = ${b.lead_id} AND status = 'accepted')`;
   }
   await timeline(sql, b.visitor_id, 'booking_cancelled', { uid, start_time: b.start_time });
+  // Stop the AI (coach takes over by hand) unless the lead still has another live booking.
+  const [other] = b.lead_id ? await sql`SELECT 1 FROM bookings WHERE lead_id = ${b.lead_id} AND status = 'accepted' LIMIT 1` : [null];
+  if (!other) {
+    const [l] = b.lead_id ? await sql`SELECT phone FROM leads WHERE id = ${b.lead_id}` : [null];
+    await aiOff(l?.phone || b.attendee_phone, 'Booking cancelled' + (p.cancellationReason ? ': ' + String(p.cancellationReason).slice(0, 150) : ''));
+  }
   await sendAlert(`Call cancelled: ${b.attendee_name || b.attendee_email || ''}`, [
     ['Was', fmtTime(b.start_time)], ['Name', b.attendee_name], ['Email', b.attendee_email],
     ['Reason', p.cancellationReason]
@@ -205,6 +223,10 @@ async function noShow(sql, p) {
   const [b] = await sql`UPDATE bookings SET status = ${flagged ? 'no_show' : 'accepted'}, updated_at = now() WHERE uid = ${uid} RETURNING *`;
   if (b?.lead_id && flagged) await sql`UPDATE leads SET stage = 'no_show', updated_at = now() WHERE id = ${b.lead_id} AND stage IN ('applied', 'booked')`;
   if (b) await timeline(sql, b.visitor_id, flagged ? 'booking_no_show' : 'booking_no_show_cleared', { uid });
+  if (b && flagged) {
+    const [l] = b.lead_id ? await sql`SELECT phone FROM leads WHERE id = ${b.lead_id}` : [null];
+    await setScenario(l?.phone || b.attendee_phone, 'no_show', { context: { missed_call_start: b.start_time ? new Date(b.start_time).toISOString() : '' } });
+  }
 }
 
 async function timeline(sql, vid, name, data) {

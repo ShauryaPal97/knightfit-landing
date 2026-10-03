@@ -1,8 +1,10 @@
 // POST /api/lead — receives a completed application, stores it as a lead in Postgres,
-// emails an alert, and forwards it to LEAD_WEBHOOK_URL (GoHighLevel, Zapier, Make, Apps Script…) if set.
+// emails an alert, hands qualified applicants to SMSLoop for AI texting (if SMSLOOP_URL is set),
+// and forwards it to LEAD_WEBHOOK_URL (GoHighLevel, Zapier, Make, Apps Script…) if set.
 import { readJson, clientIp, send, readCookie, str } from './_util.js';
 import { db } from './_db.js';
 import { sendAlert, adminLink } from './_mail.js';
+import { smsloopPost, applicationToSmsloop } from './_smsloop.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return send(res, 405, { error: 'method_not_allowed' });
@@ -46,6 +48,9 @@ export default async function handler(req, res) {
     ],
     adminLink(req, lead.application_id ? '/leads/' + encodeURIComponent(lead.application_id) : '/leads')
   );
+
+  // Disqualified applicants are never texted.
+  if (qualified && c.phone) await smsloopPost('/leads/inbound', applicationToSmsloop(lead));
 
   const url = process.env.LEAD_WEBHOOK_URL;
   if (!url) {

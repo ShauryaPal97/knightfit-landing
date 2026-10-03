@@ -21,10 +21,11 @@ Ad → index.html (VSL + inline application form) → qualified → /booking (Ca
 | `assets/css/site.css` | All styles (mobile-first) |
 | `admin/` | Admin panel at `/admin` (overview, visitors, leads, bookings, settings) |
 | `api/track.js` | Visitor analytics in + Meta Conversions API mirror (respects the auto-send switches) |
-| `api/lead.js` | Stores each application as a lead, emails an alert, forwards to `LEAD_WEBHOOK_URL` if set |
-| `api/cal-webhook.js` | Cal.com booking webhook → bookings + lead stage |
+| `api/lead.js` | Stores each application as a lead, emails an alert, hands qualified applicants to SMSLoop, forwards to `LEAD_WEBHOOK_URL` if set |
+| `api/cal-webhook.js` | Cal.com booking webhook → bookings + lead stage, and tells SMSLoop (booked / no-show / cancelled) |
 | `api/admin.js` | Every admin operation (password-protected) |
-| `api/_*.js` | Shared helpers (database, Meta sender, auth, email); not deployed as routes |
+| `api/_*.js` | Shared helpers (database, Meta sender, auth, email, SMSLoop); not deployed as routes |
+| `smsloop/scenarios.json` | Knight's SMSLoop scenarios (prompts, first texts, follow-ups); load with `python -m app.seed_scenarios` |
 | `db/schema.sql` | Database tables; apply with `npm run db:migrate` |
 | `scripts/dev.mjs` | Local server that runs the site + `/api` exactly like Vercel |
 | `mockups/` | Design mockups (not deployed) |
@@ -73,10 +74,29 @@ Open http://localhost:3000 (or pass a port: `node scripts/dev.mjs 3100`). Copy `
    - `META_CAPI_TOKEN`: Events Manager → pixel → Settings → Conversions API → *Generate access token*
    - `LEAD_WEBHOOK_URL`: where applications go (GHL inbound webhook, Zapier, Make, Apps Script…)
    - optional `META_TEST_EVENT_CODE` (for testing only), `LEAD_WEBHOOK_SECRET`
+   - `SMSLOOP_URL` + `SMSLOOP_SECRET`: AI texting (see below)
 3. Put the same pixel ID in `assets/js/config.js` → `PIXEL_ID`, and set `DEBUG: false`.
 4. Point `knightfit.io` at the Vercel project (Settings → Domains).
 
 `.vercelignore` keeps `mockups/`, `scripts/` and the full-size original images off the live site.
+
+## AI texting (SMSLoop)
+
+Knight's SMSLoop deployment (separate Railway app, Sendblue number) texts every qualified applicant:
+
+| What happened | Knight sends | SMSLoop does |
+|---|---|---|
+| Qualified application | `POST /leads/inbound` with `scenario: "not_booked"` + the form answers | Waits 15 min, then texts: asks about goals, struggles, what they tried, and pushes them to book |
+| Call booked (or rescheduled) | `POST /leads/event` `set_scenario: "booked"` + call time | Swaps a pending "not booked" text for a warm-up text in 1-2 min; mid-chat it switches to the warm-up prompt. Booked without applying = new lead |
+| No-show marked in Cal.com | `set_scenario: "no_show"` | Texts after ~30 min to rebook, no guilt |
+| Booking cancelled | `event: "ai_off"` | AI stops, coach gets a dashboard bell + email to take over |
+
+Disqualified applicants are never texted. Both env vars unset = nothing is sent.
+
+Setup:
+1. Deploy SMSLoop for Knight (its README), connect Sendblue, copy **Settings → Integrations → Lead source** secret into `SMSLOOP_SECRET` and the service URL into `SMSLOOP_URL`.
+2. Replace `https://cal.com/REPLACE-WITH-KNIGHTS-CAL-LINK` in `smsloop/scenarios.json` (two prompts), then on the SMSLoop service: `python -m app.seed_scenarios scenarios.json` (or paste them into the dashboard). Re-running updates them; the old prompt stays as "Load Last Saved Prompt".
+3. The Cal.com event must ask for a **phone number** (attendee phone), otherwise people who book without applying can't be texted.
 
 ## Tracking
 
@@ -148,6 +168,8 @@ Offer / compliance:
 - [ ] New ~5 min VSL recorded and uploaded
 - [ ] `PIXEL_ID` set, `DEBUG: false`, env vars set on Vercel, test events verified on a real phone
 - [ ] Cal.com account + event created, `CAL_LINK` set, webhook added (see Admin panel → Setup)
+- [ ] SMSLoop deployed for Knight, `SMSLOOP_URL`/`SMSLOOP_SECRET` set, scenarios seeded with the real booking link, prompts reviewed by Knight, bot switched ON
+- [ ] Cal.com event collects attendee phone number
 - [ ] Cal.com booking tested end-to-end on a real phone (redirects to /thank-you, booking appears in /admin → Bookings)
 - [ ] Neon database connected, `npm run db:migrate` run against it, admin env vars set
 - [ ] Ads Manager URL parameters added to every ad
