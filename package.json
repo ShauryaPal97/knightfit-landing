@@ -1,0 +1,16 @@
+{
+  "name": "knightfit-landing",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "db:migrate": "node scripts/migrate.mjs"
+  },
+  "dependencies": {
+    "nodemailer": "^10.0.13",
+    "postgres": "^3.4.7"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

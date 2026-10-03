@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>You're booked | Knight Fit</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#130e0c">
+  <link rel="icon" href="/assets/img/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <script src="/assets/js/config.js"></script>
+  <script src="/assets/js/tracking.js"></script>
+</head>
+<body>
+
+<header class="top">
+  <a href="/" aria-label="Knight Fit home"><img src="/assets/img/logo.png" alt="Knight Fit" class="logo" width="357" height="159"></a>
+</header>
+
+<main>
+  <section class="page">
+    <div class="steps-done" aria-hidden="true"><span></span><span></span></div>
+    <h1>You're booked. <span class="hl-amber">Talk soon.</span></h1>
+    <p class="lede">Check your email for the calendar invite. Here's how to get the most out of the call:</p>
+    <ol class="next-steps">
+      <li><b>Add it to your calendar</b> so it doesn't get buried. The invite has the link.</li>
+      <li><b>Think about a normal week of eating.</b> What's on the table at home, what you grab at work, what Sunday looks like. No need to clean it up.</li>
+      <li><b>Show up somewhere you can talk.</b> It's a real conversation about your goals and what's been getting in the way.</li>
+    </ol>
+    <a class="btn btn-block" href="https://www.instagram.com/knightnakanishi/" target="_blank" rel="noopener" id="ig">See what I post on Instagram</a>
+  </section>
+</main>
+
+<footer class="foot">
+  <p class="small">© 2026 Nakanishi Consulting LLC operating as Knight Fit. <a href="/privacy">Privacy Policy</a> · <a href="/tos">Terms of Service</a></p>
+</footer>
+<script>
+  document.getElementById('ig').addEventListener('click', function () { KF.track('InstagramClick', { from: 'thank_you' }); });
+</script>
+</body>
+</html>

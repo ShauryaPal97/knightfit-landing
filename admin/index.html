@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Knight Fit Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#130e0c">
+  <link rel="icon" href="/assets/img/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+  <div id="login" class="login" hidden>
+    <form id="login-form">
+      <img src="/assets/img/logo.png" alt="Knight Fit" width="357" height="159">
+      <h1>Admin</h1>
+      <input type="password" name="password" placeholder="Password" autocomplete="current-password" required autofocus>
+      <button class="btn" type="submit">Sign in</button>
+      <div class="err" aria-live="polite"></div>
+    </form>
+  </div>
+
+  <div id="app" hidden>
+    <aside class="side">
+      <div class="brand"><img src="/assets/img/logo.png" alt="Knight Fit" width="357" height="159"><span>Admin</span></div>
+      <nav class="nav" data-nav></nav>
+      <div class="foot">
+        <a href="/" target="_blank" rel="noopener">View site ↗</a>
+        <button type="button" data-logout>Sign out</button>
+      </div>
+    </aside>
+    <nav class="topnav" data-nav></nav>
+    <main id="view"></main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+  <script src="/admin/admin.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Book your call | Knight Fit</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#130e0c">
+  <link rel="icon" href="/assets/img/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://app.cal.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <script src="/assets/js/config.js"></script>
+  <script src="/assets/js/tracking.js"></script>
+</head>
+<body>
+
+<header class="top">
+  <a href="/" aria-label="Knight Fit home"><img src="/assets/img/logo.png" alt="Knight Fit" class="logo" width="357" height="159"></a>
+</header>
+
+<main>
+  <section class="page">
+    <div class="steps-done" aria-hidden="true"><span></span><span class="todo"></span></div>
+    <p class="cta-note">Step 2 of 2</p>
+    <h1><span class="hl-amber" data-first-name>You</span>, pick a time for your call</h1>
+    <p class="lede">Your application's in. Grab a time below and we'll go over your goals, your week and the food you actually eat. If we're a fit, I'll walk you through how I'd build your plan.</p>
+    <div class="cal-wrap" id="cal-inline"></div>
+    <p class="disclaimer">Can't find a time that works? Send me a DM on Instagram at <a href="https://www.instagram.com/knightnakanishi/" target="_blank" rel="noopener">@knightnakanishi</a>.</p>
+  </section>
+</main>
+
+<footer class="foot">
+  <p class="small">© 2026 Nakanishi Consulting LLC operating as Knight Fit. <a href="/privacy">Privacy Policy</a> · <a href="/tos">Terms of Service</a></p>
+</footer>
+
+<script>
+(function () {
+  var C = window.KF_CONFIG || {};
+  var KF = window.KF || { track: function () {}, event: function () {}, flush: function () {}, visitorId: '' };
+  var app = {};
+  try { app = JSON.parse(sessionStorage.getItem('kf_applicant')) || {}; } catch (e) {}
+
+  var first = String(app.name || '').trim().split(/\s+/)[0];
+  if (first) document.querySelector('[data-first-name]').textContent = first;
+  else document.querySelector('h1').textContent = 'Pick a time for your call';
+
+  var lt = {};
+  try { lt = JSON.parse(localStorage.getItem('kf_last_touch')) || JSON.parse(localStorage.getItem('kf_first_touch')) || {}; } catch (e) {}
+
+  var box = document.getElementById('cal-inline');
+  if (!C.CAL_LINK) {
+    box.innerHTML = '<p class="lede">The booking calendar is being set up. Send me a DM on Instagram and we\'ll find a time.</p>';
+    return;
+  }
+
+  // Cal.com's embed snippet: queues calls until embed.js loads.
+  (function (W, A, L) {
+    var p = function (a, ar) { a.q.push(ar); };
+    var d = W.document;
+    W.Cal = W.Cal || function () {
+      var cal = W.Cal, ar = arguments;
+      if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement('script')).src = A; cal.loaded = true; }
+      if (ar[0] === L) {
+        var api = function () { p(api, arguments); };
+        var ns = ar[1];
+        api.q = api.q || [];
+        if (typeof ns === 'string') { cal.ns[ns] = cal.ns[ns] || api; p(cal.ns[ns], ar); p(cal, ['initNamespace', ns]); }
+        else p(cal, ar);
+        return;
+      }
+      p(cal, ar);
+    };
+  })(window, 'https://app.cal.com/embed/embed.js', 'init');
+
+  var NS = 'knight';
+  Cal('init', NS, { origin: 'https://app.cal.com' });
+
+  // Every config key becomes a query param on the booking page. Cal.com stores metadata[...] on the booking,
+  // so the webhook can link it back to this visitor, their application and the ad they came from.
+  var config = { layout: 'month_view', theme: 'dark', useSlotsViewOnSmallScreen: 'true' };
+  if (app.name) config.name = app.name;
+  if (app.email) config.email = app.email;
+  if (KF.visitorId) config['metadata[visitorId]'] = KF.visitorId;
+  if (app.application_id) config['metadata[applicationId]'] = app.application_id;
+  ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'campaign_id', 'adset_id', 'ad_id'].forEach(function (k) {
+    if (lt[k]) { config[k] = String(lt[k]).slice(0, 200); config['metadata[' + k + ']'] = String(lt[k]).slice(0, 200); }
+  });
+
+  Cal.ns[NS]('inline', { elementOrSelector: '#cal-inline', calLink: C.CAL_LINK, config: config });
+  Cal.ns[NS]('ui', {
+    theme: 'dark',
+    layout: 'month_view',
+    hideEventTypeDetails: false,
+    cssVarsPerTheme: { dark: { 'cal-brand': C.CAL_BRAND || '#ff4a2e' } }
+  });
+
+  var booked = false;
+  function onBooked(e) {
+    if (booked) return;
+    booked = true;
+    var data = (e && e.detail && e.detail.data) || {};
+    KF.event('booking', 'cal_booked', { uid: data.uid || null, start_time: data.startTime || null });
+    KF.track('Schedule', { content_name: 'Consultation call', application_id: app.application_id || '' }, { lead_id: app.application_id || undefined });
+    try { sessionStorage.setItem('kf_booked', JSON.stringify({ uid: data.uid || null })); } catch (err) {}
+    KF.flush(true);
+    setTimeout(function () { location.href = '/thank-you'; }, 900);
+  }
+  // V2 hands over the booking uid; the older event is kept as a fallback.
+  Cal.ns[NS]('on', { action: 'bookingSuccessfulV2', callback: onBooked });
+  Cal.ns[NS]('on', { action: 'bookingSuccessful', callback: onBooked });
+})();
+</script>
+</body>
+</html>
