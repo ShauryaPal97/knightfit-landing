@@ -25,8 +25,8 @@
   <section class="page">
     <div class="steps-done" aria-hidden="true"><span></span><span class="todo"></span></div>
     <p class="cta-note">Step 2 of 2</p>
-    <h1><span class="hl-amber" data-first-name>You</span>, pick a time for your call</h1>
-    <p class="lede">Your application's in. Grab a time below and we'll go over your goals, your week and the food you actually eat. If we're a fit, I'll walk you through how I'd build your plan.</p>
+    <h1><span class="hl-amber" data-first-name>You</span>, pick a time for your free gameplan call</h1>
+    <p class="lede">Your application's in. Grab a time below and my team will go over your goals, your week and the food you actually eat. If we're a fit, we'll walk you through how we'd build your plan.</p>
     <div class="cal-wrap" id="cal-inline"></div>
     <p class="disclaimer">Can't find a time that works? Send me a DM on Instagram at <a href="https://www.instagram.com/knightnakanishi/" target="_blank" rel="noopener">@knightnakanishi</a>.</p>
   </section>
@@ -45,7 +45,7 @@
 
   var first = String(app.name || '').trim().split(/\s+/)[0];
   if (first) document.querySelector('[data-first-name]').textContent = first;
-  else document.querySelector('h1').textContent = 'Pick a time for your call';
+  else document.querySelector('h1').textContent = 'Pick a time for your free gameplan call';
 
   var lt = {};
   try { lt = JSON.parse(localStorage.getItem('kf_last_touch')) || JSON.parse(localStorage.getItem('kf_first_touch')) || {}; } catch (e) {}
