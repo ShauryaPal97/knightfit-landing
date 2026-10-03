@@ -48,9 +48,9 @@ What it does:
 4. **Gmail alerts**: on the sending Gmail account, turn on 2-Step Verification, create an **App password**, put it in `SMTP_PASS`. You get an email for each application and each booking / cancellation.
 5. **Ads Manager → each ad → Tracking → URL parameters** (paste exactly):
    ```
-   utm_source=facebook&utm_medium=paid&utm_campaign={{campaign.name}}&utm_term={{adset.name}}&utm_content={{ad.name}}&campaign_id={{campaign.id}}&adset_id={{adset.id}}&ad_id={{ad.id}}&placement={{placement}}
+   utm_source={{site_source_name}}&utm_medium={{placement}}&utm_campaign={{campaign.name}}&utm_content={{ad.name}}&utm_term={{adset.name}}&campaign_id={{campaign.id}}&adset_id={{adset.id}}&ad_id={{ad.id}}
    ```
-   Without this, visitors still show up but with no campaign / ad set / ad.
+   Without this, visitors still show up but with no campaign / ad set / ad. `utm_source` shows fb / ig / msg / an; placement shows as "Medium" on a visitor. The three `_id` params are optional but keep stats right if you rename a campaign, ad set or ad.
 
 ### How the Meta buttons work
 - Lead and Schedule reuse the browser's original event ID when there is one, so Meta merges a manual send with any automatic copy instead of counting twice. Original event time is used if it's under 7 days old.

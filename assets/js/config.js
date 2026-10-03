@@ -2,7 +2,7 @@
 window.KF_CONFIG = {
   // Meta Pixel ID (Events Manager → Data sources). Leave '' to disable the browser pixel.
   // The Conversions API token lives server-side in Vercel env vars, never here.
-  PIXEL_ID: '',
+  PIXEL_ID: '1421889260122179',
 
   // Wistia media ID for the hero VSL (e.g. 'hbt4xagwap'). Leave '' to show the "video coming soon" frame.
   VSL_WISTIA_ID: '',
@@ -26,5 +26,5 @@ window.KF_CONFIG = {
   LEAD_ENDPOINT: '/api/lead',
 
   // Logs every tracking call to the console. Turn off for launch.
-  DEBUG: true
+  DEBUG: false
 };
