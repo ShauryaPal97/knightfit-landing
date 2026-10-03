@@ -422,14 +422,15 @@
   }
 
   /* ================= Sticky CTA ================= */
-  // Phone-only "Apply" bar: visible whenever the form card is off screen.
+  // Phone-only "Apply" bar: visible once the form card has scrolled up past the viewport.
   function initSticky() {
     var sticky = document.querySelector('.sticky-cta');
     if (!sticky || !card || !('IntersectionObserver' in window)) return;
     new IntersectionObserver(function (entries) {
-      var onScreen = entries[0].isIntersecting;
-      sticky.classList.toggle('is-on', !onScreen && !state.done);
-    }, { threshold: 0.15 }).observe(card);
+      var e = entries[0];
+      var passed = !e.isIntersecting && e.boundingClientRect.top < 0;
+      sticky.classList.toggle('is-on', passed && !state.done);
+    }, { threshold: 0 }).observe(card);
   }
 
   /* ================= Wire up ================= */
