@@ -147,6 +147,8 @@
     t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
     document,'script','https://connect.facebook.net/en_US/fbevents.js');
     /* eslint-enable */
+    // No automatic events (SubscribedButtonClick etc.): every event we want is sent explicitly.
+    window.fbq('set', 'autoConfig', false, C.PIXEL_ID);
     window.fbq('init', C.PIXEL_ID, matching());
   }
 
@@ -324,5 +326,5 @@
     log: log
   };
 
-  track('PageView', { page: location.pathname });
+  track('PageView'); // standard PageView carries no parameters; the URL already has the path
 })();
