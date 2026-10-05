@@ -115,8 +115,20 @@
     ['overview', 'Overview'], ['visitors', 'Visitors'], ['leads', 'Leads'], ['bookings', 'Bookings'],
     ['archived', 'Archived'], ['settings', 'Settings']
   ];
+  // Icons show only in the phone bottom bar.
+  var NAV_ICON = {
+    overview: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    visitors: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.5A6.5 6.5 0 0 1 21.5 20"/>',
+    leads: '<path d="M4 4h16v12H8l-4 4z"/><path d="M8 9h8M8 12h5"/>',
+    bookings: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    archived: '<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v11h14V9M10 13h4"/>',
+    settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/>'
+  };
   $$('[data-nav]').forEach(function (n) {
-    n.innerHTML = NAV.map(function (x) { return '<a href="#/' + x[0] + '" data-r="' + x[0] + '">' + x[1] + '</a>'; }).join('');
+    n.innerHTML = NAV.map(function (x) {
+      return '<a href="#/' + x[0] + '" data-r="' + x[0] + '">' +
+        '<svg class="ni" viewBox="0 0 24 24" aria-hidden="true">' + NAV_ICON[x[0]] + '</svg><span>' + x[1] + '</span></a>';
+    }).join('');
   });
 
   var refreshTimer = null;
@@ -865,11 +877,12 @@
       var st = s.status;
       var checks = [
         ['Database', st.database], ['Meta Pixel ID (server)', st.pixel], ['Conversions API token', st.capi],
-        ['Cal.com webhook secret', st.cal], ['Email alerts (Gmail SMTP)', st.smtp], ['Lead webhook (CRM)', st.lead_webhook],
+        ['Cal.com webhook secret', st.cal], ['Email alerts (Gmail SMTP)', st.smtp], ['Phone notifications (VAPID keys)', st.push], ['Lead webhook (CRM)', st.lead_webhook],
         ['ADMIN_SESSION_SECRET', st.session_secret]
       ];
       view.innerHTML =
         '<div class="ph"><div><h1>Settings</h1></div></div>' +
+        '<div class="card" data-push style="margin-bottom:14px"></div>' +
         '<div class="card" data-alerts style="margin-bottom:14px"></div>' +
         '<div class="grid g2">' +
           '<div class="card"><h2>Automatic sending to Meta</h2>' +
@@ -888,6 +901,8 @@
             '<div class="card"><h2>This browser</h2>' +
               '<div class="toggle-row"><div><b>Exclude my visits</b><div class="sub">Stops this browser from being tracked or sent to Meta on the site. Turn on for everyone on the team who tests the page.</div></div>' +
               '<label class="switch"><input type="checkbox" data-ignore' + (ignored ? ' checked' : '') + '><span></span></label></div>' +
+              '<div class="device-foot"><a class="btn ghost sm" href="/" target="_blank" rel="noopener">View site ↗</a>' +
+              '<button type="button" class="btn ghost sm" data-signout>Sign out</button></div>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -904,6 +919,10 @@
         '</div>';
 
       renderAlerts(s.alerts);
+      renderPush(s.push);
+      $('[data-signout]', view).addEventListener('click', function () {
+        api('logout', null, {}).then(showLogin, showLogin);
+      });
 
       $$('[data-auto]', view).forEach(function (cb) {
         cb.addEventListener('change', function () {
@@ -1020,6 +1039,164 @@
       });
     });
   }
+
+  /* ================= phone notifications (web push) ================= */
+  var pushSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  var swReady = null;
+
+  function registerSW() {
+    if (!('serviceWorker' in navigator)) return null;
+    if (!swReady) {
+      swReady = navigator.serviceWorker.register('/admin-sw.js', { scope: '/admin' })
+        .then(function () { return navigator.serviceWorker.ready; })
+        .catch(function (e) { swReady = null; throw e; });
+    }
+    return swReady;
+  }
+  if ('serviceWorker' in navigator) {
+    registerSW().catch(function () {});
+    // A tapped notification while the app is open: switch to the page it points at.
+    navigator.serviceWorker.addEventListener('message', function (e) {
+      if (e.data && e.data.type === 'open' && e.data.url) {
+        var h = new URL(e.data.url, location.href).hash;
+        if (h && h !== location.hash) location.hash = h; else route();
+      }
+    });
+  }
+
+  function deviceName() {
+    var ua = navigator.userAgent;
+    var dev = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) || (isIOS && !/iPhone/.test(ua)) ? 'iPad' : /Android/.test(ua) ? 'Android' :
+      /Macintosh/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : 'Device';
+    if (isIOS || dev === 'Android') return dev;
+    var br = /Edg\//.test(ua) ? 'Edge' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : '';
+    return br ? dev + ' · ' + br : dev;
+  }
+  function b64ToBytes(s) {
+    var b = atob((s + '='.repeat((4 - s.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/'));
+    var out = new Uint8Array(b.length);
+    for (var i = 0; i < b.length; i++) out[i] = b.charCodeAt(i);
+    return out;
+  }
+  function currentSub() {
+    if (!pushSupported) return Promise.resolve(null);
+    return registerSW().then(function (reg) { return reg.pushManager.getSubscription(); }).catch(function () { return null; });
+  }
+
+  // Phone notifications card: turn push on for this device, pick alert types per device, test, remove.
+  function renderPush(p) {
+    var box = $('[data-push]', view);
+    if (!box) return;
+    currentSub().then(function (sub) { draw(p, sub ? sub.endpoint : ''); });
+
+    function save(op, body, msg) {
+      return api(op, null, body).then(function (res) { if (msg) toast(msg); renderPush(res.push); })
+        .catch(function (e) { toast(e.message, true); renderPush(p); });
+    }
+
+    function draw(p, mine) {
+      var list = p.devices.map(function (d) { return { endpoint: d.endpoint, name: d.name, types: d.types.slice() }; });
+      var me = list.filter(function (d) { return d.endpoint === mine; })[0];
+      var perm = pushSupported ? Notification.permission : 'default';
+      var state = '';
+      if (!p.configured) {
+        state = '<p class="alert-note bad">Push isn\'t set up yet (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY on Vercel), so no notifications will send.</p>';
+      } else if (isIOS && !standalone) {
+        state = '<div class="install-steps"><b>Get alerts on this iPhone</b><ol>' +
+          '<li>Open this page in <b>Safari</b>.</li>' +
+          '<li>Tap <b>Share</b> <span class="muted">(square with arrow)</span> → <b>Add to Home Screen</b>.</li>' +
+          '<li>Open <b>Knight</b> from your home screen, sign in, and come back here to turn on notifications.</li></ol></div>';
+      } else if (!pushSupported) {
+        state = '<p class="alert-note">This browser can\'t receive push notifications.</p>';
+      } else if (me) {
+        state = '<div class="push-on"><span class="ok">●</span> Notifications are on for this device.' +
+          '<span class="push-btns"><button type="button" class="btn ghost sm" data-ptest="' + esc(me.endpoint) + '">Send test</button>' +
+          '<button type="button" class="btn ghost sm" data-poff>Turn off</button></span></div>';
+      } else if (perm === 'denied') {
+        state = '<p class="alert-note bad">Notifications are blocked for this app. ' +
+          (isIOS ? 'Open iPhone <b>Settings → Notifications → Knight</b> and allow them, then reopen the app.' : 'Allow notifications for this site in your browser settings, then reload.') + '</p>';
+      } else {
+        state = '<button type="button" class="btn" data-pon>Turn on notifications for this device</button>';
+      }
+
+      box.innerHTML =
+        '<h2>Phone notifications</h2>' +
+        '<p class="muted" style="margin-top:-4px">Get a notification when someone applies, books, cancels or no-shows. Each device picks its own alerts.</p>' +
+        state +
+        (list.length ? '<div class="alert-list" style="margin-top:12px">' + list.map(function (d, i) {
+          return '<div class="alert-row">' +
+            '<div class="alert-email">' + esc(d.name) + (d.endpoint === mine ? ' <span class="this-dev">This device</span>' : '') + '</div>' +
+            '<div class="chips alert-types">' + p.types.map(function (t) {
+              var on = d.types.indexOf(t.key) !== -1;
+              return '<button type="button" class="chip' + (on ? ' on' : '') + '" data-i="' + i + '" data-ptype="' + t.key + '" aria-pressed="' + on + '">' + esc(t.label) + '</button>';
+            }).join('') + '</div>' +
+            '<button type="button" class="btn ghost sm" data-premove="' + i + '" aria-label="Remove ' + esc(d.name) + '">Remove</button>' +
+          '</div>';
+        }).join('') + '</div>' : '');
+
+      $$('[data-ptype]', box).forEach(function (b) {
+        b.addEventListener('click', function () {
+          var d = list[+b.getAttribute('data-i')];
+          var k = b.getAttribute('data-ptype');
+          var idx = d.types.indexOf(k);
+          if (idx === -1) d.types.push(k); else d.types.splice(idx, 1);
+          save('pushUpdate', { endpoint: d.endpoint, types: d.types }, d.name + ': ' + b.textContent + (idx === -1 ? ' on' : ' off'));
+        });
+      });
+      $$('[data-premove]', box).forEach(function (b) {
+        b.addEventListener('click', function () {
+          var d = list[+b.getAttribute('data-premove')];
+          if (!window.confirm('Stop notifications on ' + d.name + '?')) return;
+          if (d.endpoint === mine) return turnOff();
+          save('pushRemove', { endpoint: d.endpoint }, d.name + ' removed');
+        });
+      });
+      var on = $('[data-pon]', box);
+      if (on) on.addEventListener('click', function () {
+        on.disabled = true;
+        on.textContent = 'Turning on…';
+        // Ask right inside the tap: iOS only shows the prompt for a user gesture.
+        Notification.requestPermission().then(function (res) {
+          if (res !== 'granted') throw new Error(res === 'denied' ? 'Notifications were blocked.' : 'Notifications weren\'t allowed.');
+          return registerSW();
+        }).then(function (reg) {
+          var key = b64ToBytes(p.public_key);
+          return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }).catch(function () {
+            // An old subscription made with a different key blocks a new one: drop it and retry.
+            return reg.pushManager.getSubscription().then(function (old) { return old && old.unsubscribe(); })
+              .then(function () { return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }); });
+          });
+        }).then(function (sub) {
+          return save('pushSubscribe', { subscription: sub.toJSON(), name: deviceName() }, 'Notifications on for this device');
+        }).catch(function (e) { toast(e.message, true); renderPush(p); });
+      });
+      var off = $('[data-poff]', box);
+      if (off) off.addEventListener('click', turnOff);
+      $$('[data-ptest]', box).forEach(function (b) {
+        b.addEventListener('click', function () {
+          b.disabled = true;
+          api('pushTest', null, { endpoint: b.getAttribute('data-ptest') }).then(function () { toast('Test sent. It should arrive in a few seconds.'); })
+            .catch(function (e) { toast(e.message, true); renderPush(p); })
+            .then(function () { b.disabled = false; });
+        });
+      });
+
+      function turnOff() {
+        currentSub().then(function (sub) { return sub && sub.unsubscribe(); }).catch(function () {})
+          .then(function () { save('pushRemove', { endpoint: mine }, 'Notifications off for this device'); });
+      }
+    }
+  }
+
+  // Coming back to the home-screen app after a while: reload the page's data (there's no pull-to-refresh).
+  var hiddenAt = 0;
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { hiddenAt = Date.now(); return; }
+    if (hiddenAt && Date.now() - hiddenAt > 60000 && !$('#app').hidden && !$('.drawer')) route();
+    hiddenAt = 0;
+  });
 
   /* ================= boot ================= */
   api('session').then(function () { showApp(); route(); }).catch(function (e) {

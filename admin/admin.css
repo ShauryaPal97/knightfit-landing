@@ -61,15 +61,31 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .topnav { display: none; }
 main { margin-left: var(--side); padding: 28px 32px 80px; max-width: 1500px; min-width: 0; }
 
+/* Nav icons show only in the phone bottom bar. */
+.nav .ni { display: none; }
+
+/* Phone: bottom tab bar, safe areas for the home-screen app (status bar on top, home indicator below). */
 @media (max-width: 860px) {
   .side { display: none; }
   .topnav {
-    display: flex; gap: 4px; overflow-x: auto; padding: 10px 12px; position: sticky; top: 0; z-index: 20;
-    background: var(--bg-2); border-bottom: 1px solid var(--line); scrollbar-width: none;
+    display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    background: rgba(26, 19, 16, .96); border-top: 1px solid var(--line);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
   }
-  .topnav a { flex: none; padding: 7px 12px; border-radius: 999px; text-decoration: none; color: var(--mute); font-size: 13px; }
-  .topnav a.on { background: var(--card-2); color: var(--text); }
-  main { margin-left: 0; padding: 18px 16px 80px; }
+  .topnav a {
+    display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 0; min-width: 0;
+    text-decoration: none; color: var(--dim); font-size: 10.5px; font-weight: 500; border-radius: 10px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .topnav a span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .topnav .ni { display: block; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .topnav a.on { color: var(--amber); }
+  main { margin-left: 0; padding: calc(18px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom)); }
+  .drawer { padding-top: calc(20px + env(safe-area-inset-top)); padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+  .toast { bottom: calc(84px + env(safe-area-inset-bottom)) !important; }
+  /* 16px+ stops iOS zooming in when a field is focused. */
+  input, select, textarea, .form-grid input, .form-grid select { font-size: 16px !important; }
 }
 
 /* ---------- page header ---------- */
@@ -133,6 +149,13 @@ textarea { width: 100%; resize: vertical; min-height: 70px; }
 .alert-add input { flex: 1; min-width: 0; }
 .alert-err { color: #ff8f7d; font-size: 13px; min-height: 1em; margin: 6px 0 4px; }
 .alert-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.push-on { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.push-on .ok { color: var(--green); }
+.push-btns { display: flex; gap: 8px; margin-left: auto; }
+.this-dev { font-size: 11px; font-weight: 600; color: var(--amber); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; margin-left: 6px; white-space: nowrap; }
+.install-steps { background: var(--card-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 14px; }
+.install-steps ol { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; }
+.device-foot { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 @media (max-width: 760px) {
   .alert-row { grid-template-columns: 1fr auto; }
   .alert-types { grid-column: 1 / -1; grid-row: 2; }

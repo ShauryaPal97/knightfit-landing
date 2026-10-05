@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import { readCookie } from './_util.js';
 
 const COOKIE = 'kf_admin';
-const MAX_AGE = 7 * 86400; // seconds
+const MAX_AGE = 90 * 86400; // seconds (long so the home-screen app rarely asks for the password)
 
 function secret() {
   // Falls back to a key derived from the password, so changing the password signs everyone out.

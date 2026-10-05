@@ -5,6 +5,7 @@ import { db, getSettings, setSetting, TOGGLEABLE_EVENTS, autoSendOn } from './_d
 import { adminConfigured, checkPassword, setSessionCookie, clearSessionCookie, isAdmin } from './_auth.js';
 import { buildUserData, sendToMeta, metaConfigured } from './_meta.js';
 import { ALERT_TYPES, smtpConfigured, envRecipients, getRecipients, normalizeRecipients, sendTestAlert, adminLink } from './_mail.js';
+import { PUSH_TYPES, pushConfigured, publicKey, getDevices, addDevice, updateDevice, removeDevice, sendTestPush } from './_push.js';
 
 const STAGES = ['applied', 'booked', 'showed', 'closed', 'no_show', 'lost', 'disqualified'];
 const LEAD_SOURCES = ['ad', 'organic', 'referral', 'dm', 'other'];
@@ -64,7 +65,7 @@ export default async function handler(req, res) {
 
 const OPS = {
   overview, filters, visitors, visitor, leads, lead, updateLead, addNote, archiveLead, sendMeta,
-  bookings, bookingStatus, settings, saveSettings, testAlert, exportCsv, deleteAll
+  bookings, bookingStatus, settings, saveSettings, testAlert, pushSubscribe, pushUpdate, pushRemove, pushTest, exportCsv, deleteAll
 };
 
 // Group expressions for the ads breakdown (whitelisted, never user input).
@@ -394,6 +395,7 @@ async function settings(sql) {
   for (const e of TOGGLEABLE_EVENTS) auto[e] = autoSendOn(s, e);
   const [{ n }] = await sql`SELECT count(*)::int AS n FROM visitors`;
   const rcpt = await getRecipients();
+  const devices = await getDevices(true);
   return {
     auto,
     alerts: {
@@ -403,6 +405,12 @@ async function settings(sql) {
       types: ALERT_TYPES,
       smtp: smtpConfigured()
     },
+    push: {
+      configured: pushConfigured(),
+      public_key: publicKey(),
+      types: PUSH_TYPES,
+      devices: devices.map((d) => ({ endpoint: d.endpoint, name: d.name, types: d.types, created_at: d.created_at }))
+    },
     test_code: s.meta_test_event_code || '',
     env_test_code: Boolean(process.env.META_TEST_EVENT_CODE),
     status: {
@@ -411,6 +419,7 @@ async function settings(sql) {
       capi: metaConfigured(),
       cal: Boolean(process.env.CAL_WEBHOOK_SECRET),
       smtp: smtpConfigured() && rcpt.list.length > 0,
+      push: pushConfigured(),
       lead_webhook: Boolean(process.env.LEAD_WEBHOOK_URL),
       session_secret: Boolean(process.env.ADMIN_SESSION_SECRET)
     },
@@ -439,6 +448,32 @@ async function testAlert(sql, q, body, req) {
   } catch (err) {
     throw new HttpError(400, err.message);
   }
+}
+
+// Phone notifications: each device subscribes itself from Settings and picks its alert types.
+async function pushOp(req, fn) {
+  if (req.method !== 'POST') throw new HttpError(405, 'method_not_allowed');
+  try {
+    return await fn();
+  } catch (err) {
+    throw new HttpError(400, err.message);
+  }
+}
+function pushSubscribe(sql, q, body, req) {
+  return pushOp(req, async () => {
+    if (!pushConfigured()) throw new Error('Push isn\'t set up (VAPID keys missing on Vercel).');
+    await addDevice(body.subscription, str(body.name, 60));
+    return settings(sql);
+  });
+}
+function pushUpdate(sql, q, body, req) {
+  return pushOp(req, async () => { await updateDevice(String(body.endpoint || ''), body); return settings(sql); });
+}
+function pushRemove(sql, q, body, req) {
+  return pushOp(req, async () => { await removeDevice(String(body.endpoint || '')); return settings(sql); });
+}
+function pushTest(sql, q, body, req) {
+  return pushOp(req, () => sendTestPush(String(body.endpoint || '')));
 }
 
 const EXPORTS = {

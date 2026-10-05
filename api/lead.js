@@ -4,6 +4,7 @@
 import { readJson, clientIp, send, readCookie, str } from './_util.js';
 import { db } from './_db.js';
 import { sendAlert, adminLink } from './_mail.js';
+import { sendPush } from './_push.js';
 import { smsloopPost, applicationToSmsloop } from './_smsloop.js';
 
 export default async function handler(req, res) {
@@ -37,7 +38,8 @@ export default async function handler(req, res) {
   const a = lead.answers || {};
   const t = lead.attribution?.last_touch?.utm_campaign ? lead.attribution.last_touch : (lead.attribution?.first_touch || {});
   const qualified = lead.lead_status === 'qualified';
-  await sendAlert(
+  const name = c.name || email;
+  await Promise.all([sendAlert(
     qualified ? 'application' : 'disqualified',
     `${qualified ? 'New application' : 'Disqualified application'}: ${c.name || email}`,
     [
@@ -48,7 +50,12 @@ export default async function handler(req, res) {
       ['Campaign', t.utm_campaign], ['Ad set', t.utm_term], ['Ad', t.utm_content]
     ],
     adminLink(req, lead.application_id ? '/leads/' + encodeURIComponent(lead.application_id) : '/leads')
-  );
+  ), sendPush(qualified ? 'application' : 'disqualified', {
+    title: qualified ? 'New application' : 'Disqualified application',
+    body: [name, ...(qualified ? [a.goal?.label, a.invest?.label] : [lead.dq_reason])].filter(Boolean).join(' · '),
+    url: '/admin#/leads' + (lead.application_id ? '/' + encodeURIComponent(lead.application_id) : ''),
+    tag: lead.application_id ? 'lead-' + lead.application_id : undefined
+  })]);
 
   // Disqualified applicants are never texted.
   if (qualified && c.phone) await smsloopPost('/leads/inbound', applicationToSmsloop(lead));

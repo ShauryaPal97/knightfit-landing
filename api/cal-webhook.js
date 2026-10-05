@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 import { send, str } from './_util.js';
 import { db } from './_db.js';
 import { sendAlert, adminLink } from './_mail.js';
+import { sendPush } from './_push.js';
 import { setScenario, aiOff } from './_smsloop.js';
 
 async function rawBody(req) {
@@ -83,7 +84,7 @@ async function findLead(sql, meta, email) {
   return null;
 }
 
-async function created(sql, req, p) {
+async function created(sql, req, p, isReschedule = false) {
   const uid = str(p.uid, 120);
   if (!uid) return;
   const [exists] = await sql`SELECT uid FROM bookings WHERE uid = ${uid}`;
@@ -172,12 +173,18 @@ async function created(sql, req, p) {
     context: { call_start: p.startTime, call_end: p.endTime, timezone: a0.timeZone || p.organizer?.timeZone || '' }
   });
 
-  await sendAlert('booked', `Call booked: ${who.name || who.email || 'someone'}`, [
+  const tz = p.organizer?.timeZone;
+  await Promise.all([sendAlert('booked', `Call booked: ${who.name || who.email || 'someone'}`, [
     ['When', fmtTime(p.startTime, p.organizer?.timeZone)],
     ['Name', who.name], ['Email', who.email], ['Phone', who.phone],
     ['Lead', lead ? (lead.source === 'booking' ? 'New (booked without applying)' : 'Applied ' + fmtDate(lead.created_at)) : null],
     ['Campaign', lead?.utm_campaign], ['Ad set', lead?.utm_term], ['Ad', lead?.utm_content]
-  ], adminLink(req, '/bookings'));
+  ], adminLink(req, '/bookings')), sendPush('booked', {
+    title: isReschedule ? 'Call rescheduled' : 'Call booked',
+    body: [who.name || who.email, fmtShort(p.startTime, tz)].filter(Boolean).join(' · '),
+    url: pushUrl(lead?.id),
+    tag: 'booking-' + uid
+  })]);
 }
 
 async function rescheduled(sql, req, p) {
@@ -189,7 +196,7 @@ async function rescheduled(sql, req, p) {
       p.metadata = { ...(p.metadata || {}), applicationId: p.metadata?.applicationId || old.lead_id, visitorId: p.metadata?.visitorId || old.visitor_id };
     }
   }
-  await created(sql, req, p);
+  await created(sql, req, p, true);
 }
 
 async function cancelled(sql, req, p) {
@@ -210,10 +217,16 @@ async function cancelled(sql, req, p) {
     const [l] = b.lead_id ? await sql`SELECT phone FROM leads WHERE id = ${b.lead_id}` : [null];
     await aiOff(l?.phone || b.attendee_phone, 'Booking cancelled' + (p.cancellationReason ? ': ' + String(p.cancellationReason).slice(0, 150) : ''));
   }
-  await sendAlert('cancelled', `Call cancelled: ${b.attendee_name || b.attendee_email || ''}`, [
+  const tz = b.raw?.organizer?.timeZone;
+  await Promise.all([sendAlert('cancelled', `Call cancelled: ${b.attendee_name || b.attendee_email || ''}`, [
     ['Was', fmtTime(b.start_time)], ['Name', b.attendee_name], ['Email', b.attendee_email],
     ['Reason', p.cancellationReason]
-  ], adminLink(req, '/bookings'));
+  ], adminLink(req, '/bookings')), sendPush('cancelled', {
+    title: 'Call cancelled',
+    body: [b.attendee_name || b.attendee_email, b.start_time ? 'was ' + fmtShort(b.start_time, tz) : ''].filter(Boolean).join(' · '),
+    url: pushUrl(b.lead_id),
+    tag: 'booking-' + uid
+  })]);
 }
 
 async function noShow(sql, p) {
@@ -226,6 +239,13 @@ async function noShow(sql, p) {
   if (b && flagged) {
     const [l] = b.lead_id ? await sql`SELECT phone FROM leads WHERE id = ${b.lead_id}` : [null];
     await setScenario(l?.phone || b.attendee_phone, 'no_show', { context: { missed_call_start: b.start_time ? new Date(b.start_time).toISOString() : '' } });
+    // No-show alerts are push only (no email type for them).
+    await sendPush('no_show', {
+      title: 'No-show',
+      body: [b.attendee_name || b.attendee_email, b.start_time ? 'missed ' + fmtShort(b.start_time, b.raw?.organizer?.timeZone) : ''].filter(Boolean).join(' · '),
+      url: pushUrl(b.lead_id),
+      tag: 'booking-' + uid
+    });
   }
 }
 
@@ -242,6 +262,18 @@ function fmtTime(t, tz) {
   } catch {
     return new Date(t).toISOString();
   }
+}
+// Short form for phone notifications, e.g. "Tue, Oct 7, 3:00 PM PDT".
+function fmtShort(t, tz) {
+  if (!t) return '';
+  try {
+    return new Date(t).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: tz || 'UTC', timeZoneName: 'short' });
+  } catch {
+    return fmtShort(t);
+  }
+}
+function pushUrl(leadId) {
+  return leadId ? '/admin#/leads/' + encodeURIComponent(leadId) : '/admin#/bookings';
 }
 function fmtDate(t) {
   return t ? new Date(t).toISOString().slice(0, 10) : '';

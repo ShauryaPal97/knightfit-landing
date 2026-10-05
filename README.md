@@ -52,6 +52,7 @@ What it does:
    utm_source={{site_source_name}}&utm_medium={{placement}}&utm_campaign={{campaign.name}}&utm_content={{ad.name}}&utm_term={{adset.name}}&campaign_id={{campaign.id}}&adset_id={{adset.id}}&ad_id={{ad.id}}
    ```
    Without this, visitors still show up but with no campaign / ad set / ad. `utm_source` shows fb / ig / msg / an; placement shows as "Medium" on a visitor. The three `_id` params are optional but keep stats right if you rename a campaign, ad set or ad.
+6. **Phone notifications** (iPhone app): run `npx web-push generate-vapid-keys` once and put the two keys in `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` on Vercel, then redeploy. On the iPhone (iOS 16.4+): open `/admin` in **Safari** → Share → **Add to Home Screen** → open **Knight** from the home screen → sign in → **Settings → Phone notifications → Turn on**. Each device picks its alerts: new application, disqualified, call booked (and rescheduled), cancelled, no-show. **Send test** checks it. Tapping a notification opens that lead. Login lasts 90 days.
 
 ### How the Meta buttons work
 - Lead and Schedule reuse the browser's original event ID when there is one, so Meta merges a manual send with any automatic copy instead of counting twice. Original event time is used if it's under 7 days old.
