@@ -206,8 +206,8 @@ section { padding: 44px var(--gutter); max-width: 1080px; margin: 0 auto; }
 .steps-done { display: flex; gap: 8px; margin-bottom: 4px; }
 .steps-done span { flex: 1; height: 5px; border-radius: 99px; background: var(--chili); }
 .steps-done span.todo { background: var(--card-2); }
-/* Transparent: Cal's dark embed is see-through around its card. Height follows the embed; min-height avoids a jump while it loads. */
-.cal-wrap { background: transparent; border-radius: 16px; overflow: hidden; margin: 18px calc(var(--gutter) * -1) 0; min-height: 620px; }
+/* Transparent: Cal's dark embed is see-through around its card. No fixed/min height: Cal centres a shorter iframe in it. */
+.cal-wrap { background: transparent; border-radius: 16px; overflow: hidden; margin: 18px calc(var(--gutter) * -1) 0; }
 .next-steps { list-style: none; counter-reset: n; display: grid; gap: 12px; margin: 24px 0 30px; }
 .next-steps li { counter-increment: n; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 16px 16px 58px; position: relative; color: #e6d8cb; }
 .next-steps li::before { content: counter(n); position: absolute; left: 16px; top: 14px; width: 28px; height: 28px; border-radius: 50%; background: var(--amber); color: #1a0f08; font: 700 15px/28px var(--body); text-align: center; }
