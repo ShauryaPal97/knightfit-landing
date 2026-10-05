@@ -4,7 +4,7 @@ import { readJson, send, str } from './_util.js';
 import { db, getSettings, setSetting, TOGGLEABLE_EVENTS, autoSendOn } from './_db.js';
 import { adminConfigured, checkPassword, setSessionCookie, clearSessionCookie, isAdmin } from './_auth.js';
 import { buildUserData, sendToMeta, metaConfigured } from './_meta.js';
-import { mailConfigured } from './_mail.js';
+import { ALERT_TYPES, smtpConfigured, envRecipients, getRecipients, normalizeRecipients, sendTestAlert, adminLink } from './_mail.js';
 
 const STAGES = ['applied', 'booked', 'showed', 'closed', 'no_show', 'lost', 'disqualified'];
 const LEAD_SOURCES = ['ad', 'organic', 'referral', 'dm', 'other'];
@@ -64,7 +64,7 @@ export default async function handler(req, res) {
 
 const OPS = {
   overview, filters, visitors, visitor, leads, lead, updateLead, addNote, archiveLead, sendMeta,
-  bookings, bookingStatus, settings, saveSettings, exportCsv, deleteAll
+  bookings, bookingStatus, settings, saveSettings, testAlert, exportCsv, deleteAll
 };
 
 // Group expressions for the ads breakdown (whitelisted, never user input).
@@ -393,8 +393,16 @@ async function settings(sql) {
   const auto = {};
   for (const e of TOGGLEABLE_EVENTS) auto[e] = autoSendOn(s, e);
   const [{ n }] = await sql`SELECT count(*)::int AS n FROM visitors`;
+  const rcpt = await getRecipients();
   return {
     auto,
+    alerts: {
+      recipients: rcpt.source === 'admin' ? rcpt.list : [],
+      source: rcpt.source,
+      env_fallback: envRecipients(),
+      types: ALERT_TYPES,
+      smtp: smtpConfigured()
+    },
     test_code: s.meta_test_event_code || '',
     env_test_code: Boolean(process.env.META_TEST_EVENT_CODE),
     status: {
@@ -402,7 +410,7 @@ async function settings(sql) {
       pixel: Boolean(process.env.META_PIXEL_ID),
       capi: metaConfigured(),
       cal: Boolean(process.env.CAL_WEBHOOK_SECRET),
-      smtp: mailConfigured(),
+      smtp: smtpConfigured() && rcpt.list.length > 0,
       lead_webhook: Boolean(process.env.LEAD_WEBHOOK_URL),
       session_secret: Boolean(process.env.ADMIN_SESSION_SECRET)
     },
@@ -417,7 +425,20 @@ async function saveSettings(sql, q, body) {
     }
   }
   if ('test_code' in body) await setSetting('meta_test_event_code', str(body.test_code, 40) || '');
+  if ('alert_recipients' in body) {
+    if (!Array.isArray(body.alert_recipients)) throw new HttpError(400, 'alert_recipients must be a list');
+    await setSetting('alert_recipients', JSON.stringify(normalizeRecipients(body.alert_recipients)));
+  }
   return settings(sql);
+}
+
+async function testAlert(sql, q, body, req) {
+  if (req.method !== 'POST') throw new HttpError(405, 'method_not_allowed');
+  try {
+    return await sendTestAlert(adminLink(req, '/settings'));
+  } catch (err) {
+    throw new HttpError(400, err.message);
+  }
 }
 
 const EXPORTS = {

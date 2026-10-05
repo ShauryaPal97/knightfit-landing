@@ -41,12 +41,12 @@ What it does:
 
 ### Setup (once)
 1. **Database**: Vercel → project → Storage → Create → **Neon** (Postgres) → connect to this project. Copy the pooled `DATABASE_URL` into a local `.env`, then run `npm install` and `npm run db:migrate`.
-2. **Env vars** on Vercel (see `.env.example`): `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET` (`openssl rand -hex 32`), `META_PIXEL_ID`, `META_CAPI_TOKEN`, `CAL_WEBHOOK_SECRET`, `SMTP_USER`, `SMTP_PASS`, `ALERT_EMAIL_TO`.
+2. **Env vars** on Vercel (see `.env.example`): `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET` (`openssl rand -hex 32`), `META_PIXEL_ID`, `META_CAPI_TOKEN`, `CAL_WEBHOOK_SECRET`, `SMTP_USER`, `SMTP_PASS` (optional: `ALERT_EMAIL_TO` as a fallback recipient list).
 3. **Cal.com**: create the event, put its link in `config.js` → `CAL_LINK` (e.g. `knightnakanishi/consult`). Then Settings → Developer → Webhooks → New:
    - Subscriber URL: `https://knightfit.io/api/cal-webhook`
    - Secret: same value as `CAL_WEBHOOK_SECRET`
    - Triggers: Booking created, Booking rescheduled, Booking cancelled, Booking no-show updated
-4. **Gmail alerts**: on the sending Gmail account, turn on 2-Step Verification, create an **App password**, put it in `SMTP_PASS`. You get an email for each application and each booking / cancellation.
+4. **Gmail alerts**: on the sending Gmail account, turn on 2-Step Verification, create an **App password**, put it in `SMTP_PASS`. Then in **Admin → Settings → Email alerts**, add who gets alerts (up to 20 emails) and pick per person: new application, disqualified application, call booked, call cancelled. **Send test email** checks the setup. `ALERT_EMAIL_TO` is only used while that list is empty.
 5. **Ads Manager → each ad → Tracking → URL parameters** (paste exactly):
    ```
    utm_source={{site_source_name}}&utm_medium={{placement}}&utm_campaign={{campaign.name}}&utm_content={{ad.name}}&utm_term={{adset.name}}&campaign_id={{campaign.id}}&adset_id={{adset.id}}&ad_id={{ad.id}}

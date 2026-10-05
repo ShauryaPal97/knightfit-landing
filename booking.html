@@ -83,6 +83,12 @@
   var config = { layout: 'month_view', theme: 'dark', useSlotsViewOnSmallScreen: 'true' };
   if (app.name) config.name = app.name;
   if (app.email) config.email = app.email;
+  // Cal's phone field wants E.164. No "+" = US/Canada, same rule as tracking.js normPhone and SMSLoop.
+  var ph = String(app.phone || '').trim();
+  var digits = ph.replace(/\D/g, '');
+  if (digits.length === 10 && ph.charAt(0) !== '+') digits = '1' + digits;
+  if (digits.length >= 11) config.attendeePhoneNumber = '+' + digits;
+  if (app.notes) config.notes = String(app.notes).slice(0, 1000);
   if (KF.visitorId) config['metadata[visitorId]'] = KF.visitorId;
   if (app.application_id) config['metadata[applicationId]'] = app.application_id;
   ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'campaign_id', 'adset_id', 'ad_id'].forEach(function (k) {

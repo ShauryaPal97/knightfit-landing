@@ -292,9 +292,20 @@
       page: { url: location.href, title: document.title, user_agent: navigator.userAgent }
     };
 
+    // Prefills Cal.com's "Additional notes" on /booking so Knight sees the answers on the booking.
+    var ans = payload.answers;
+    var notes = [
+      'Goal: ' + ans.goal.label,
+      'Hardest part: ' + ans.challenge.label,
+      ans.tried_before.length ? 'Tried: ' + ans.tried_before.map(function (t) { return t.label; }).join(', ') : '',
+      'Ready to invest: ' + ans.invest.label,
+      [ans.age ? 'Age: ' + ans.age : '', ans.occupation ? 'Work: ' + ans.occupation : ''].filter(Boolean).join(' · '),
+      a.instagram ? 'Instagram: ' + a.instagram : ''
+    ].filter(Boolean).join('\n');
+
     try {
       sessionStorage.setItem('kf_applicant', JSON.stringify({
-        name: a.name, email: a.email, phone: a.phone, lead_status: payload.lead_status, application_id: applicationId
+        name: a.name, email: a.email, phone: a.phone, lead_status: payload.lead_status, application_id: applicationId, notes: notes
       }));
     } catch (e) {}
 

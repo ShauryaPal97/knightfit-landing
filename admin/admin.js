@@ -870,6 +870,7 @@
       ];
       view.innerHTML =
         '<div class="ph"><div><h1>Settings</h1></div></div>' +
+        '<div class="card" data-alerts style="margin-bottom:14px"></div>' +
         '<div class="grid g2">' +
           '<div class="card"><h2>Automatic sending to Meta</h2>' +
             '<p class="muted" style="margin-top:-4px">Off = the browser pixel and the server both hold the event. It\'s logged as <b>held</b> and you send it from the lead with the Send button. Page views, video and form-step events always send. Purchase is always manual.</p>' +
@@ -902,6 +903,8 @@
             '<button class="btn danger" data-wipe>Delete all data</button></div>' +
         '</div>';
 
+      renderAlerts(s.alerts);
+
       $$('[data-auto]', view).forEach(function (cb) {
         cb.addEventListener('change', function () {
           var auto = {};
@@ -930,6 +933,92 @@
           .catch(function (e) { toast(e.message, true); });
       });
     }
+  }
+
+  // Email alerts card: recipients, the alert types each one gets, and a test send.
+  function renderAlerts(a) {
+    var box = $('[data-alerts]', view);
+    if (!box) return;
+    var list = a.recipients.map(function (r) { return { email: r.email, types: r.types.slice() }; });
+    var allTypes = a.types.map(function (t) { return t.key; });
+
+    function save(next, msg) {
+      return api('saveSettings', null, { alert_recipients: next }).then(function (res) {
+        toast(msg);
+        renderAlerts(res.alerts);
+      }).catch(function (e) { toast(e.message, true); renderAlerts(a); });
+    }
+
+    var note = '';
+    if (!a.smtp) note += '<p class="alert-note bad">Gmail SMTP isn\'t set up yet (SMTP_USER / SMTP_PASS on Vercel), so no alerts will send.</p>';
+    if (!list.length && a.env_fallback.length) {
+      note += '<p class="alert-note">No emails added here, so all alerts go to <b>' + esc(a.env_fallback.join(', ')) + '</b> (ALERT_EMAIL_TO on Vercel). Add emails below to take over.</p>';
+    } else if (!list.length) {
+      note += '<p class="alert-note bad">No one gets alerts yet. Add an email below.</p>';
+    }
+
+    box.innerHTML =
+      '<h2>Email alerts</h2>' +
+      '<p class="muted" style="margin-top:-4px">Who gets an email, and for what. Tap a type to switch it on or off for that person.</p>' +
+      note +
+      (list.length ? '<div class="alert-list">' + list.map(function (r, i) {
+        return '<div class="alert-row">' +
+          '<div class="alert-email">' + esc(r.email) + '</div>' +
+          '<div class="chips alert-types">' + a.types.map(function (t) {
+            var on = r.types.indexOf(t.key) !== -1;
+            return '<button type="button" class="chip' + (on ? ' on' : '') + '" data-i="' + i + '" data-type="' + t.key + '" aria-pressed="' + on + '">' + esc(t.label) + '</button>';
+          }).join('') + '</div>' +
+          '<button type="button" class="btn ghost sm" data-remove="' + i + '" aria-label="Remove ' + esc(r.email) + '">Remove</button>' +
+        '</div>';
+      }).join('') + '</div>' : '') +
+      '<form class="alert-add" data-add novalidate>' +
+        '<input type="email" name="email" placeholder="name@email.com" autocomplete="off" aria-label="Email to add">' +
+        '<button class="btn" type="submit">Add email</button>' +
+      '</form>' +
+      '<p class="alert-err" data-err></p>' +
+      '<div class="alert-foot">' +
+        '<button type="button" class="btn ghost sm" data-test-mail' + (a.smtp && (list.length || a.env_fallback.length) ? '' : ' disabled') + '>Send test email</button>' +
+        '<span class="muted" style="font-size:12px">Sends one test email to everyone listed.</span>' +
+      '</div>';
+
+    $$('[data-type]', box).forEach(function (b) {
+      b.addEventListener('click', function () {
+        var r = list[+b.getAttribute('data-i')];
+        var k = b.getAttribute('data-type');
+        var idx = r.types.indexOf(k);
+        if (idx === -1) r.types.push(k); else r.types.splice(idx, 1);
+        save(list, r.email + ': ' + b.textContent + (idx === -1 ? ' on' : ' off'));
+      });
+    });
+    $$('[data-remove]', box).forEach(function (b) {
+      b.addEventListener('click', function () {
+        var r = list[+b.getAttribute('data-remove')];
+        if (!window.confirm('Stop sending alerts to ' + r.email + '?')) return;
+        save(list.filter(function (x) { return x !== r; }), r.email + ' removed');
+      });
+    });
+    $('[data-add]', box).addEventListener('submit', function (e) {
+      e.preventDefault();
+      var input = e.target.email;
+      var email = input.value.trim().toLowerCase();
+      var err = $('[data-err]', box);
+      if (!/^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]{2,}$/.test(email)) { err.textContent = 'That doesn\'t look like an email address.'; input.focus(); return; }
+      if (list.some(function (r) { return r.email === email; })) { err.textContent = email + ' is already on the list.'; input.focus(); return; }
+      if (list.length >= 20) { err.textContent = 'You can add up to 20 emails.'; return; }
+      err.textContent = '';
+      save(list.concat([{ email: email, types: allTypes.slice() }]), email + ' added');
+    });
+    $('[data-test-mail]', box).addEventListener('click', function (e) {
+      var btn = e.currentTarget;
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      api('testAlert', null, {}).then(function (res) {
+        toast('Test email sent to ' + res.recipients.join(', '));
+      }).catch(function (ex) { toast(ex.message, true); }).then(function () {
+        btn.disabled = false;
+        btn.textContent = 'Send test email';
+      });
+    });
   }
 
   /* ================= boot ================= */

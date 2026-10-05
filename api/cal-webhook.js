@@ -172,7 +172,7 @@ async function created(sql, req, p) {
     context: { call_start: p.startTime, call_end: p.endTime, timezone: a0.timeZone || p.organizer?.timeZone || '' }
   });
 
-  await sendAlert(`Call booked: ${who.name || who.email || 'someone'}`, [
+  await sendAlert('booked', `Call booked: ${who.name || who.email || 'someone'}`, [
     ['When', fmtTime(p.startTime, p.organizer?.timeZone)],
     ['Name', who.name], ['Email', who.email], ['Phone', who.phone],
     ['Lead', lead ? (lead.source === 'booking' ? 'New (booked without applying)' : 'Applied ' + fmtDate(lead.created_at)) : null],
@@ -210,7 +210,7 @@ async function cancelled(sql, req, p) {
     const [l] = b.lead_id ? await sql`SELECT phone FROM leads WHERE id = ${b.lead_id}` : [null];
     await aiOff(l?.phone || b.attendee_phone, 'Booking cancelled' + (p.cancellationReason ? ': ' + String(p.cancellationReason).slice(0, 150) : ''));
   }
-  await sendAlert(`Call cancelled: ${b.attendee_name || b.attendee_email || ''}`, [
+  await sendAlert('cancelled', `Call cancelled: ${b.attendee_name || b.attendee_email || ''}`, [
     ['Was', fmtTime(b.start_time)], ['Name', b.attendee_name], ['Email', b.attendee_email],
     ['Reason', p.cancellationReason]
   ], adminLink(req, '/bookings'));

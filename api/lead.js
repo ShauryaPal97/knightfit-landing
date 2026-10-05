@@ -38,6 +38,7 @@ export default async function handler(req, res) {
   const t = lead.attribution?.last_touch?.utm_campaign ? lead.attribution.last_touch : (lead.attribution?.first_touch || {});
   const qualified = lead.lead_status === 'qualified';
   await sendAlert(
+    qualified ? 'application' : 'disqualified',
     `${qualified ? 'New application' : 'Disqualified application'}: ${c.name || email}`,
     [
       ['Status', qualified ? 'Qualified' : 'Disqualified (' + (lead.dq_reason || '') + ')'],
