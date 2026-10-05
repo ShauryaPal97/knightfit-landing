@@ -115,9 +115,12 @@
     ['overview', 'Overview'], ['visitors', 'Visitors'], ['leads', 'Leads'], ['bookings', 'Bookings'],
     ['archived', 'Archived'], ['settings', 'Settings']
   ];
+  // The phone bottom bar is the coach view's nav (same routes, simpler pages).
+  var COACH_NAV = [['overview', 'Home'], ['leads', 'Leads'], ['bookings', 'Calls'], ['visitors', 'Visitors'], ['settings', 'Settings']];
   // Icons show only in the phone bottom bar.
   var NAV_ICON = {
     overview: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
     visitors: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.5A6.5 6.5 0 0 1 21.5 20"/>',
     leads: '<path d="M4 4h16v12H8l-4 4z"/><path d="M8 9h8M8 12h5"/>',
     bookings: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
@@ -125,9 +128,11 @@
     settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/>'
   };
   $$('[data-nav]').forEach(function (n) {
-    n.innerHTML = NAV.map(function (x) {
+    var bottom = n.classList.contains('topnav');
+    n.innerHTML = (bottom ? COACH_NAV : NAV).map(function (x) {
+      var icon = NAV_ICON[bottom && x[0] === 'overview' ? 'home' : x[0]];
       return '<a href="#/' + x[0] + '" data-r="' + x[0] + '">' +
-        '<svg class="ni" viewBox="0 0 24 24" aria-hidden="true">' + NAV_ICON[x[0]] + '</svg><span>' + x[1] + '</span></a>';
+        '<svg class="ni" viewBox="0 0 24 24" aria-hidden="true">' + icon + '</svg><span>' + x[1] + '</span></a>';
     }).join('');
   });
 
@@ -140,14 +145,16 @@
     var parts = (location.hash.replace(/^#\/?/, '') || 'overview').split('/');
     var page = parts[0];
     var arg = parts[1] ? decodeURIComponent(parts.slice(1).join('/')) : '';
-    $$('[data-r]').forEach(function (a) {
-      var r = a.getAttribute('data-r');
-      a.classList.toggle('on', r === page || (r === 'visitors' && page === 'visitor'));
-    });
+    var coach = isCoach();
+    var tab = page === 'visitor' ? 'visitors' : coach && page === 'archived' ? 'leads' : page;
+    $$('[data-r]').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-r') === tab); });
     closeDrawer(true);
-    var pages = { overview: overview, visitors: visitors, visitor: visitor, leads: leadsPage, archived: archivedPage,
-      bookings: bookings, settings: settings };
-    (pages[page] || overview)(arg);
+    var pages = coach
+      ? { overview: coachHome, leads: coachLeads, archived: function () { coachLeads('', true); }, bookings: coachCalls,
+          visitors: coachVisitors, visitor: coachVisitor, settings: coachSettings }
+      : { overview: overview, visitors: visitors, visitor: visitor, leads: leadsPage, archived: archivedPage,
+          bookings: bookings, settings: settings };
+    (pages[page] || pages.overview)(arg);
     window.scrollTo(0, 0);
   }
   window.addEventListener('hashchange', route);
@@ -638,7 +645,7 @@
     document.body.appendChild(dr);
     bg.addEventListener('click', function () { closeDrawer(); });
     document.addEventListener('keydown', escClose);
-    renderLead(id, dr);
+    (isCoach() ? renderCoachLead : renderLead)(id, dr);
   }
 
   function renderLead(id, dr) {
@@ -706,39 +713,7 @@
 
       $('[data-close]', dr).addEventListener('click', function () { closeDrawer(); });
 
-      $$('[data-stage]', dr).forEach(function (b) {
-        b.addEventListener('click', function () {
-          var stage = b.getAttribute('data-stage');
-          api('updateLead', null, { id: l.id, fields: { stage: stage } }).then(function () {
-            toast('Stage: ' + STAGE_LABEL[stage]);
-            if (stage === 'closed' && !l.meta_purchase_sent_at) toast('Closed. Enter the amount and press Send Purchase to tell Meta.');
-            renderLead(l.id, dr);
-          }).catch(function (e) { toast(e.message, true); });
-        });
-      });
-
-      $('[data-form]', dr).addEventListener('submit', function (e) {
-        e.preventDefault();
-        var fd = new FormData(e.target);
-        var fields = {};
-        fd.forEach(function (val, k) { fields[k] = val; });
-        api('updateLead', null, { id: l.id, fields: fields }).then(function () { toast('Saved'); renderLead(l.id, dr); })
-          .catch(function (ex) { toast(ex.message, true); });
-      });
-
-      $('[data-note]', dr).addEventListener('submit', function (e) {
-        e.preventDefault();
-        var note = e.target.note.value.trim();
-        if (!note) return;
-        api('addNote', null, { id: l.id, note: note }).then(function () { renderLead(l.id, dr); }).catch(function (ex) { toast(ex.message, true); });
-      });
-
-      $('[data-archive]', dr).addEventListener('click', function () {
-        api('archiveLead', null, { id: l.id, archived: !l.archived_at }).then(function () {
-          toast(l.archived_at ? 'Unarchived' : 'Archived');
-          closeDrawer();
-        }).catch(function (ex) { toast(ex.message, true); });
-      });
+      bindLeadEdits(l, dr, renderLead, l.meta_purchase_sent_at ? '' : 'Closed. Enter the amount and press Send Purchase to tell Meta.');
 
       $$('[data-send]', dr).forEach(function (btn) {
         btn.addEventListener('click', function () { sendMeta(l, btn.getAttribute('data-send'), dr, false); });
@@ -747,6 +722,43 @@
       if (e.message !== 'unauthorized') dr.innerHTML = '<div class="dh"><h2>Error</h2><button class="x" data-close>✕</button></div><p>' + esc(e.message) + '</p>';
       var x = $('[data-close]', dr);
       if (x) x.addEventListener('click', function () { closeDrawer(); });
+    });
+  }
+
+  // Stage buttons, details form, notes and archive: shared by the full and the coach lead views.
+  function bindLeadEdits(l, dr, rerender, closedMsg) {
+    $$('[data-stage]', dr).forEach(function (b) {
+      b.addEventListener('click', function () {
+        var stage = b.getAttribute('data-stage');
+        api('updateLead', null, { id: l.id, fields: { stage: stage } }).then(function () {
+          toast('Stage: ' + STAGE_LABEL[stage]);
+          if (stage === 'closed' && closedMsg) toast(closedMsg);
+          rerender(l.id, dr);
+        }).catch(function (e) { toast(e.message, true); });
+      });
+    });
+
+    $('[data-form]', dr).addEventListener('submit', function (e) {
+      e.preventDefault();
+      var fd = new FormData(e.target);
+      var fields = {};
+      fd.forEach(function (val, k) { fields[k] = val; });
+      api('updateLead', null, { id: l.id, fields: fields }).then(function () { toast('Saved'); rerender(l.id, dr); })
+        .catch(function (ex) { toast(ex.message, true); });
+    });
+
+    $('[data-note]', dr).addEventListener('submit', function (e) {
+      e.preventDefault();
+      var note = e.target.note.value.trim();
+      if (!note) return;
+      api('addNote', null, { id: l.id, note: note }).then(function () { rerender(l.id, dr); }).catch(function (ex) { toast(ex.message, true); });
+    });
+
+    $('[data-archive]', dr).addEventListener('click', function () {
+      api('archiveLead', null, { id: l.id, archived: !l.archived_at }).then(function () {
+        toast(l.archived_at ? 'Unarchived' : 'Archived');
+        closeDrawer();
+      }).catch(function (ex) { toast(ex.message, true); });
     });
   }
 
@@ -1038,6 +1050,430 @@
         btn.textContent = 'Send test email';
       });
     });
+  }
+
+  /* ================= Coach view (phone) ================= */
+  // Phone-sized screens get a simple view for coaches: leads, calls and visitors in plain words.
+  // No Meta sends, attribution, exports or setup; those stay on the full panel (wider screens).
+  var coachMQ = window.matchMedia ? window.matchMedia('(max-width: 860px)') : null;
+  function isCoach() { return Boolean(coachMQ && coachMQ.matches); }
+  function syncCoach() { document.body.classList.toggle('coach', isCoach()); }
+  syncCoach();
+  if (coachMQ) {
+    var onCoachChange = function () { syncCoach(); if (!$('#app').hidden) route(); };
+    if (coachMQ.addEventListener) coachMQ.addEventListener('change', onCoachChange);
+    else if (coachMQ.addListener) coachMQ.addListener(onCoachChange);
+  }
+
+  var CI = {
+    filter: '<path d="M3 5h18M6 12h12M10 19h4"/>',
+    call: '<path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2z"/>',
+    text: '<path d="M4 4h16v12H8l-4 4z"/>',
+    mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+    insta: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".5"/>'
+  };
+  function cIcon(k) { return '<svg class="ci" viewBox="0 0 24 24" aria-hidden="true">' + CI[k] + '</svg>'; }
+
+  // "Today · 3:00 PM", "Tomorrow · 9:30 AM", "Tue, Oct 7 · 3:00 PM"
+  function callTime(t) {
+    if (!t) return '';
+    var d = new Date(t), now = new Date();
+    var dayDiff = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 864e5);
+    var dayText = dayDiff === 0 ? 'Today' : dayDiff === 1 ? 'Tomorrow' : dayDiff === -1 ? 'Yesterday'
+      : d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    return dayText + ' · ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+  // 12 → "12 sec", 134 → "2 min 14 sec"
+  function spoken(sec) {
+    sec = Math.max(0, Math.round(Number(sec) || 0));
+    var m = Math.floor(sec / 60), r = sec % 60;
+    return m ? m + ' min' + (r ? ' ' + r + ' sec' : '') : r + ' sec';
+  }
+  function readStore(k) {
+    try { return JSON.parse(store(k) || '{}') || {}; } catch (e) { return {}; }
+  }
+  function coachPills(attr, current, list) {
+    return '<div class="pills" ' + attr + '>' + list.map(function (x) {
+      return '<button type="button" data-v="' + x[0] + '" class="' + (x[0] === current ? 'on' : '') + '">' + x[1] + '</button>';
+    }).join('') + '</div>';
+  }
+  function bookingBadge(status) {
+    return '<span class="badge bk-' + esc(status) + '">' + esc(status === 'accepted' ? 'scheduled' : String(status).replace('_', '-')) + '</span>';
+  }
+
+  // Search box + small Filters button (with a count of active filters) that opens a bottom sheet.
+  function searchRow(placeholder) {
+    return '<div class="c-search"><input type="search" data-q placeholder="' + esc(placeholder) + '" aria-label="Search">' +
+      '<button type="button" class="btn ghost c-filter" data-filters>' + cIcon('filter') + 'Filters<span class="c-badge" data-badge hidden></span></button></div>';
+  }
+  function setupSearch(groups, getF, defaults, onSearch, onApply) {
+    var t;
+    $('[data-q]', view).addEventListener('input', function (e) {
+      clearTimeout(t);
+      var v = e.target.value.trim();
+      t = setTimeout(function () { onSearch(v); }, 300);
+    });
+    $('[data-filters]', view).addEventListener('click', function () { openFilters(groups, getF(), defaults, onApply); });
+    badge();
+    function badge() {
+      var f = getF();
+      var n = groups.filter(function (g) { return f[g.key] !== defaults[g.key]; }).length;
+      var b = $('[data-badge]', view);
+      b.hidden = !n;
+      b.textContent = n;
+    }
+    return badge;
+  }
+  // groups: [{ key, label, options: [[value, label], ...] }]; one pick per group. onApply gets the new values.
+  function openFilters(groups, current, defaults, onApply) {
+    var draft = Object.assign({}, current);
+    var bg = document.createElement('div');
+    bg.className = 'sheet-bg';
+    var sh = document.createElement('div');
+    sh.className = 'sheet';
+    sh.setAttribute('role', 'dialog');
+    sh.setAttribute('aria-label', 'Filters');
+    document.body.appendChild(bg);
+    document.body.appendChild(sh);
+    bg.addEventListener('click', close);
+    draw();
+
+    function draw() {
+      sh.innerHTML = '<div class="sheet-grip"></div>' +
+        '<div class="sheet-h"><b>Filters</b><button type="button" class="link" data-reset>Reset</button></div>' +
+        groups.map(function (g) {
+          return '<div class="sheet-g"><div class="sheet-l">' + esc(g.label) + '</div><div class="chips">' + g.options.map(function (o) {
+            return '<button type="button" class="chip' + (draft[g.key] === o[0] ? ' on' : '') + '" data-g="' + g.key + '" data-v="' + esc(o[0]) + '">' + esc(o[1]) + '</button>';
+          }).join('') + '</div></div>';
+        }).join('') +
+        '<button type="button" class="btn sheet-go" data-done>Show results</button>';
+      $$('[data-g]', sh).forEach(function (b) {
+        b.addEventListener('click', function () { draft[b.getAttribute('data-g')] = b.getAttribute('data-v'); draw(); });
+      });
+      $('[data-reset]', sh).addEventListener('click', function () { draft = Object.assign({}, defaults); draw(); });
+      $('[data-done]', sh).addEventListener('click', function () { close(); onApply(draft); });
+    }
+    function close() { bg.remove(); sh.remove(); }
+  }
+
+  /* ---------- Home ---------- */
+  function coachHome() {
+    var range = store('ch_range') || '7d';
+    view.innerHTML =
+      '<div class="ph"><div><h1>Home</h1></div>' + coachPills('data-range', range, [['24h', '24 hours'], ['7d', '7 days'], ['30d', '30 days']]) + '</div>' +
+      '<div class="c-tiles" data-tiles><div class="loading">Loading…</div></div>' +
+      '<h2 class="c-h2">Upcoming calls</h2><div class="c-list" data-calls></div>' +
+      '<a class="c-more" href="#/bookings">See all calls →</a>';
+
+    onPills(view, '[data-range]', function (v) {
+      range = v; store('ch_range', v);
+      $$('[data-range] button', view).forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-v') === v); });
+      load();
+    });
+
+    function load() {
+      Promise.all([api('leads', { range: range }), api('bookings', { tab: 'upcoming' })]).then(function (r) {
+        var k = r[0].kpi;
+        $('[data-tiles]', view).innerHTML =
+          kpi('New leads', num(k.total), k.disqualified ? '+' + num(k.disqualified) + ' didn\'t qualify' : '') +
+          kpi('Calls booked', num(k.booked), '', 'accent') +
+          kpi('Showed up', num(k.showed), k.no_show ? num(k.no_show) + ' no-show' : '') +
+          kpi('Closed', num(k.closed), '', 'good');
+        var calls = r[1].rows.slice(0, 5);
+        $('[data-calls]', view).innerHTML = calls.length ? calls.map(callCard).join('') : '<div class="c-empty">No calls coming up</div>';
+        bindCallCards(load);
+      }).catch(fail);
+    }
+    load();
+    refreshTimer = setInterval(function () {
+      if (document.visibilityState === 'visible' && !$('.drawer') && !$('.sheet')) load();
+    }, 60000);
+  }
+
+  function callCard(b, opts) {
+    var name = b.lead_name || b.attendee_name || b.attendee_email || 'Someone';
+    var marks = opts && opts.marks;
+    return '<div class="c-card' + (b.lead_id ? '' : ' static') + '"' + (b.lead_id ? ' role="button" tabindex="0" data-lead="' + esc(b.lead_id) + '"' : '') + '>' +
+      '<div class="c-top"><b class="c-when">' + esc(callTime(b.start_time)) + '</b>' + (b.status !== 'accepted' ? bookingBadge(b.status) : '') + '</div>' +
+      // One badge per card: the call's own status once it's set, otherwise the lead's stage.
+      '<div class="c-sub">' + esc(name) + ' ' + (b.stage && b.status === 'accepted' ? stageBadge(b.stage) : '') + '</div>' +
+      (marks ? '<div class="c-marks">' +
+        (b.status !== 'showed' ? '<button type="button" class="btn ghost sm" data-mark="showed" data-uid="' + esc(b.uid) + '">Showed</button>' : '') +
+        (b.status !== 'no_show' ? '<button type="button" class="btn ghost sm" data-mark="no_show" data-uid="' + esc(b.uid) + '">No-show</button>' : '') +
+        (b.status !== 'accepted' ? '<button type="button" class="btn ghost sm" data-mark="accepted" data-uid="' + esc(b.uid) + '">Undo</button>' : '') +
+      '</div>' : '') +
+    '</div>';
+  }
+  function bindCallCards(reload) {
+    $$('.c-card[data-lead]', view).forEach(function (c) {
+      var open = function (e) {
+        if (e.target.closest('[data-mark]')) return;
+        if (e.type === 'keydown' && e.key !== 'Enter') return;
+        openLead(c.getAttribute('data-lead'), reload);
+      };
+      c.addEventListener('click', open);
+      c.addEventListener('keydown', open);
+    });
+    $$('[data-mark]', view).forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        btn.disabled = true;
+        api('bookingStatus', null, { uid: btn.getAttribute('data-uid'), status: btn.getAttribute('data-mark') })
+          .then(function () { toast('Updated'); reload(); })
+          .catch(function (e) { toast(e.message, true); btn.disabled = false; });
+      });
+    });
+  }
+
+  /* ---------- Leads ---------- */
+  function coachLeads(openId, archivedRoute) {
+    var defaults = { stage: '', range: 'all', archived: '' };
+    var f = Object.assign({}, defaults, readStore('cl'));
+    if (archivedRoute) f.archived = '1';
+    var q = '';
+    var groups = [
+      { key: 'stage', label: 'Stage', options: [['', 'All']].concat(STAGES) },
+      { key: 'range', label: 'Applied', options: [['7d', 'Last 7 days'], ['30d', 'Last 30 days'], ['90d', 'Last 90 days'], ['all', 'Any time']] },
+      { key: 'archived', label: 'Show', options: [['', 'Active leads'], ['1', 'Archived leads']] }
+    ];
+    view.innerHTML =
+      '<div class="ph"><div><h1>Leads</h1><div class="sub" data-count></div></div></div>' +
+      searchRow('Search leads') +
+      '<div class="c-list" data-list><div class="loading">Loading…</div></div>';
+    var badge = setupSearch(groups, function () { return f; }, defaults, function (v) { q = v; load(); }, function (next) {
+      f = next; store('cl', JSON.stringify(f)); badge(); load();
+    });
+
+    function load() {
+      api('leads', { range: f.range, q: q, stage: f.stage, archived: f.archived }).then(function (d) {
+        var rows = d.rows;
+        $('[data-count]', view).textContent = num(rows.length) + ' ' + (f.stage ? (STAGE_LABEL[f.stage] || '').toLowerCase() + ' ' : '') +
+          (f.archived ? 'archived ' : '') + (rows.length === 1 ? 'lead' : 'leads');
+        $('[data-list]', view).innerHTML = rows.length ? rows.map(function (r) {
+          var line = r.next_call ? 'Call ' + callTime(r.next_call) : (r.source === 'booking' ? 'Booked ' : 'Applied ') + ago(r.created_at);
+          return '<button type="button" class="c-card" data-id="' + esc(r.id) + '">' +
+            '<div class="c-top"><b>' + esc(r.name || '(no name)') + '</b>' + stageBadge(r.stage) + '</div>' +
+            '<div class="c-sub">' + esc(line) + '</div></button>';
+        }).join('') : '<div class="c-empty">No leads here' + (q || f.stage || f.range !== 'all' ? ' with these filters' : ' yet') + '</div>';
+        $$('[data-id]', view).forEach(function (c) {
+          c.addEventListener('click', function () { openLead(c.getAttribute('data-id'), load); });
+        });
+      }).catch(fail);
+    }
+    load();
+    if (openId) openLead(openId, load);
+  }
+
+  /* ---------- Lead sheet ---------- */
+  function renderCoachLead(id, dr) {
+    api('lead', { id: id }).then(function (d) {
+      var l = d.lead;
+      var a = l.answers || {};
+      var lbl = function (x) { return Array.isArray(x) ? x.map(function (y) { return y.label; }).join(', ') : x && typeof x === 'object' ? x.label : x; };
+      var answers = [
+        ['Goal', lbl(a.goal)], ['Hardest part', lbl(a.challenge)], ['Tried before', lbl(a.tried_before)],
+        ['Ready to invest', lbl(a.invest)], ['Age', a.age], ['Work', a.occupation]
+      ].filter(function (x) { return x[1]; });
+      // No "+" and 10 digits = US/Canada (same rule as the booking page and SMSLoop).
+      var phone = String(l.phone || '').replace(/[^\d+]/g, '');
+      if (/^\d{10}$/.test(phone)) phone = '+1' + phone;
+      var ig = String(l.instagram || '').trim();
+      var igUrl = !ig ? '' : /^https?:\/\//i.test(ig) ? ig : 'https://instagram.com/' + encodeURIComponent(ig.replace(/^@/, '').replace(/\s+/g, ''));
+      var acts = [];
+      if (phone) acts.push(['tel:' + phone, 'Call', 'call'], ['sms:' + phone, 'Text', 'text']);
+      if (l.email) acts.push(['mailto:' + l.email, 'Email', 'mail']);
+      if (igUrl) acts.push([igUrl, 'Instagram', 'insta']);
+      var next = d.bookings.filter(function (b) { return b.status === 'accepted' && new Date(b.start_time) >= new Date(); })
+        .sort(function (x, y) { return new Date(x.start_time) - new Date(y.start_time); })[0];
+
+      dr.innerHTML =
+        '<div class="dh"><div><h2>' + esc(l.name || '(no name)') + '</h2><div class="muted" style="margin-top:8px">' + stageBadge(l.stage) + ' ' +
+          esc(l.source === 'booking' ? 'Booked without applying' : l.source === 'manual' ? 'Added by hand' : 'Applied ' + day(l.created_at)) +
+          (l.archived_at ? ' · archived' : '') + '</div></div><button class="x" data-close aria-label="Close">✕</button></div>' +
+
+        (next ? '<div class="c-next">Call booked for <b>' + esc(callTime(next.start_time)) + '</b></div>' : '') +
+        (acts.length ? '<div class="c-acts">' + acts.map(function (x) {
+          return '<a class="c-act" href="' + esc(x[0]) + '"' + (x[2] === 'insta' ? ' target="_blank" rel="noopener"' : '') + '>' + cIcon(x[2]) + '<span>' + x[1] + '</span></a>';
+        }).join('') + '</div>' : '') +
+
+        '<section><h3>Stage</h3><div class="stage-pick">' + STAGES.map(function (s) {
+          return '<button type="button" class="badge st-' + s[0] + (l.stage === s[0] ? ' on' : '') + '" data-stage="' + s[0] + '">' + s[1] + '</button>';
+        }).join('') + '</div></section>' +
+
+        (answers.length ? '<section><h3>Their answers</h3><div class="answers">' + answers.map(function (x) {
+          return '<div><span class="k">' + esc(x[0]) + '</span><span>' + esc(x[1]) + '</span></div>';
+        }).join('') + '</div></section>' : '') +
+
+        '<section><h3>Calls</h3>' + (d.bookings.length ? d.bookings.map(function (b) {
+          return '<div class="toggle-row"><b>' + esc(callTime(b.start_time)) + '</b>' + bookingBadge(b.status) + '</div>';
+        }).join('') : '<div class="muted">No calls booked yet</div>') + '</section>' +
+
+        '<section><h3>Notes</h3><form data-note><textarea name="note" placeholder="Add a note…"></textarea><button class="btn sm mt" type="submit">Add note</button></form>' +
+          d.notes.map(function (n) { return '<div class="note">' + esc(n.note) + '<div class="sub">' + esc(when(n.created_at)) + '</div></div>'; }).join('') +
+        '</section>' +
+
+        '<section><details class="c-details"><summary>Edit details</summary><form class="form-grid" data-form>' +
+          field('name', 'Name', l.name) + field('email', 'Email', l.email, 'email') +
+          field('phone', 'Phone', l.phone, 'tel') + field('instagram', 'Instagram', l.instagram) +
+          field('plan', 'Plan / package', l.plan) + field('amount_paid', 'Amount paid (USD)', l.amount_paid, 'number') +
+          '<label class="full"><button class="btn" type="submit">Save</button></label>' +
+        '</form></details></section>' +
+
+        '<section><button class="btn ghost" data-archive>' + (l.archived_at ? 'Unarchive' : 'Archive') + '</button></section>';
+
+      $('[data-close]', dr).addEventListener('click', function () { closeDrawer(); });
+      bindLeadEdits(l, dr, renderCoachLead, 'Closed! Add the amount paid under Edit details.');
+    }).catch(function (e) {
+      if (e.message !== 'unauthorized') dr.innerHTML = '<div class="dh"><h2>Couldn\'t open</h2><button class="x" data-close>✕</button></div><p>' + esc(e.message) + '</p>';
+      var x = $('[data-close]', dr);
+      if (x) x.addEventListener('click', function () { closeDrawer(); });
+    });
+  }
+
+  /* ---------- Calls ---------- */
+  function coachCalls() {
+    var tab = store('bk_tab') || 'upcoming';
+    view.innerHTML =
+      '<div class="ph"><div><h1>Calls</h1></div>' +
+      coachPills('data-tab', tab, [['upcoming', 'Upcoming'], ['past', 'Past'], ['cancelled', 'Cancelled']]) + '</div>' +
+      '<div class="c-list" data-list><div class="loading">Loading…</div></div>';
+    onPills(view, '[data-tab]', function (v) {
+      tab = v; store('bk_tab', v);
+      $$('[data-tab] button', view).forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-v') === v); });
+      load();
+    });
+    function load() {
+      api('bookings', { tab: tab }).then(function (d) {
+        $('[data-list]', view).innerHTML = d.rows.length ? d.rows.map(function (b) { return callCard(b, { marks: tab === 'past' }); }).join('')
+          : '<div class="c-empty">No ' + tab + ' calls</div>';
+        bindCallCards(load);
+      }).catch(fail);
+    }
+    load();
+  }
+
+  /* ---------- Visitors ---------- */
+  function coachVisitors() {
+    var defaults = { range: '7d', did: '' };
+    var f = Object.assign({}, defaults, readStore('cv'));
+    var q = '';
+    var groups = [
+      { key: 'range', label: 'Seen', options: [['24h', 'Last 24 hours'], ['7d', 'Last 7 days'], ['30d', 'Last 30 days'], ['all', 'Any time']] },
+      { key: 'did', label: 'Who', options: [['', 'Everyone'], ['ads', 'Came from an ad'], ['vsl', 'Watched the video'], ['started', 'Started the application'],
+        ['applied', 'Applied'], ['booked', 'Booked a call'], ['none', 'Didn\'t apply']] }
+    ];
+    view.innerHTML =
+      '<div class="ph"><div><h1>Visitors</h1><div class="sub" data-count></div></div></div>' +
+      searchRow('Search by name') +
+      '<div class="c-list" data-list><div class="loading">Loading…</div></div>';
+    var badge = setupSearch(groups, function () { return f; }, defaults, function (v) { q = v; load(); }, function (next) {
+      f = next; store('cv', JSON.stringify(f)); badge(); load();
+    });
+
+    function load() {
+      api('visitors', { range: f.range, did: f.did, q: q }).then(function (d) {
+        var rows = d.rows;
+        $('[data-count]', view).textContent = num(rows.length) + (rows.length === 500 ? '+' : '') + (rows.length === 1 ? ' person' : ' people') + ' visited the page';
+        $('[data-list]', view).innerHTML = rows.length ? rows.map(function (r) {
+          var video = r.vsl_seconds ? 'Watched ' + spoken(r.vsl_seconds) + ' of the video (' + r.vsl_pct + '%)' : 'Didn\'t watch the video';
+          var progress = r.booked ? 'Booked a call' : r.lead_id || r.furthest_step >= 7 ? 'Applied'
+            : r.furthest_step ? 'Got to question ' + r.furthest_step + ' of 6' : 'Didn\'t start the application';
+          return '<button type="button" class="c-card" data-id="' + esc(r.id) + '">' +
+            '<div class="c-top"><b>' + esc(r.name || 'Visitor') + '</b><span class="c-tag' + (r.from_ad ? ' ad' : '') + '">' + (r.from_ad ? 'Ad' : 'Direct') + '</span></div>' +
+            '<div class="c-sub">' + esc(video) + '</div>' +
+            '<div class="c-sub">' + esc(progress) + ' · ' + esc(ago(r.last_seen_at)) + '</div></button>';
+        }).join('') : '<div class="c-empty">No visitors' + (q || f.did ? ' match these filters' : ' in this time range') + '</div>';
+        $$('[data-id]', view).forEach(function (c) {
+          c.addEventListener('click', function () { location.hash = '#/visitor/' + encodeURIComponent(c.getAttribute('data-id')); });
+        });
+      }).catch(fail);
+    }
+    load();
+  }
+
+  var BOOKING_TEXT = {
+    booking_created: 'Booked a call', booking_cancelled: 'Cancelled the call', booking_no_show: 'Missed the call',
+    call_showed: 'Showed up to the call', call_no_show: 'Missed the call'
+  };
+  // Visitor events in plain words. Returns null for events coaches don't need.
+  function plainEvent(e) {
+    var d = e.data || {};
+    switch (e.type) {
+      case 'pageview': return e.path === '/booking' ? 'Opened the booking page' : e.path === '/thank-you' ? 'Reached the thank-you page' : 'Opened the page';
+      case 'video_progress': return 'Watched ' + spoken(d.seconds) + ' of the video (' + (d.pct || 0) + '%)';
+      case 'cta_click': return /^apply_/.test(e.name || '') ? 'Tapped Apply' : null;
+      case 'app_step': return 'Answered question ' + d.step + (STEP_NAMES[d.step] ? ' (' + STEP_NAMES[d.step] + ')' : '');
+      case 'lead': return e.name === 'application_disqualified' ? 'Sent the application (didn\'t qualify)' : 'Sent the application';
+      case 'booking': return BOOKING_TEXT[e.name] ? BOOKING_TEXT[e.name] + (d.start_time ? ' for ' + callTime(d.start_time) : '') : null;
+      case 'session_end': return d.seconds_on_page ? 'Left after ' + spoken(d.seconds_on_page) : 'Left the page';
+      default: return null;
+    }
+  }
+
+  function coachVisitor(id) {
+    loading();
+    api('visitor', { id: id }).then(function (d) {
+      var v = d.visitor;
+      var lead = d.leads[0];
+      var fromAd = Boolean(v.utm_campaign || v.fbclid);
+      var sessions = [];
+      var byId = {};
+      d.events.forEach(function (e) {
+        var sid = e.session_id || 'none';
+        if (!byId[sid]) { byId[sid] = { events: [] }; sessions.push(byId[sid]); }
+        byId[sid].events.push(e);
+      });
+      sessions.reverse(); // newest visit first
+
+      var html = sessions.map(function (s) {
+        // Keep only the furthest video point of each visit.
+        var lastVideo = s.events.filter(function (e) { return e.type === 'video_progress'; }).pop();
+        var items = s.events.filter(function (e) { return e.type !== 'video_progress' || e === lastVideo; })
+          .map(function (e) { return { t: e.created_at, text: plainEvent(e) }; })
+          .filter(function (x) { return x.text; });
+        if (!items.length) return '';
+        return '<div class="c-visit"><div class="c-visit-h">' + esc(callTime(s.events[0].created_at)) + '</div>' + items.map(function (x) {
+          return '<div class="c-tl"><span class="t">' + esc(new Date(x.t).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })) + '</span><span>' + esc(x.text) + '</span></div>';
+        }).join('') + '</div>';
+      }).join('');
+
+      view.innerHTML =
+        '<a class="back" href="#/visitors">← Visitors</a>' +
+        '<div class="ph"><div><h1>' + esc(lead && lead.name ? lead.name : 'Visitor') + '</h1>' +
+        '<div class="sub">' + (fromAd ? 'Came from an ad' : 'Came directly') + ' · first visit ' + esc(day(v.first_seen_at)) + '</div></div>' +
+        (lead ? '<button class="btn" data-lead="' + esc(lead.id) + '">Open lead</button>' : '') + '</div>' +
+        '<div class="card">' + (html || '<div class="c-empty">Nothing to show yet</div>') + '</div>';
+
+      var b = $('[data-lead]', view);
+      if (b) b.addEventListener('click', function () { openLead(b.getAttribute('data-lead')); });
+    }).catch(fail);
+  }
+
+  /* ---------- Settings ---------- */
+  function coachSettings() {
+    loading();
+    api('settings').then(function (s) {
+      var ignored = false;
+      try { ignored = localStorage.getItem('kf_ignore') === '1'; } catch (e) {}
+      view.innerHTML =
+        '<div class="ph"><div><h1>Settings</h1></div></div>' +
+        '<div class="card" data-push style="margin-bottom:14px"></div>' +
+        '<div class="card" style="margin-bottom:14px">' +
+          '<div class="toggle-row"><div><b>Don\'t track this phone</b><div class="sub">Turn on so your own visits to the website don\'t show up as visitors.</div></div>' +
+          '<label class="switch"><input type="checkbox" data-ignore' + (ignored ? ' checked' : '') + '><span></span></label></div>' +
+        '</div>' +
+        '<button type="button" class="btn ghost c-signout" data-signout>Sign out</button>';
+      renderPush(s.push);
+      $('[data-ignore]', view).addEventListener('change', function (e) {
+        try {
+          if (e.target.checked) localStorage.setItem('kf_ignore', '1');
+          else localStorage.removeItem('kf_ignore');
+          toast(e.target.checked ? 'This phone won\'t be tracked' : 'This phone is tracked again');
+        } catch (ex) { toast('Couldn\'t save this setting', true); }
+      });
+      $('[data-signout]', view).addEventListener('click', function () {
+        api('logout', null, {}).then(showLogin, showLogin);
+      });
+    }).catch(fail);
   }
 
   /* ================= phone notifications (web push) ================= */

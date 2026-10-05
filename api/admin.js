@@ -172,6 +172,7 @@ async function visitors(sql, q) {
     SELECT v.id, v.first_seen_at, v.last_seen_at, v.utm_source, v.utm_campaign, v.utm_term, v.utm_content,
            v.campaign_id, v.adset_id, v.ad_id, v.city, v.region, v.country, v.device, v.vsl_seconds, v.vsl_pct,
            v.furthest_step, v.total_sessions, v.total_events, v.referrer, v.landing_url,
+           (v.utm_campaign IS NOT NULL OR v.fbclid IS NOT NULL) AS from_ad,
            l.id AS lead_id, l.name, l.stage,
            EXISTS (SELECT 1 FROM bookings bk WHERE bk.visitor_id = v.id AND bk.status <> 'cancelled') AS booked
     FROM visitors v
