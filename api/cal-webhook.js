@@ -165,12 +165,15 @@ async function created(sql, req, p, isReschedule = false) {
 
   // Booked (or rescheduled: same scenario, SMSLoop only refreshes the call time).
   // Booked without applying → SMSLoop creates the lead from this.
+  // Booked BY SMSLoop's AI in the chat (metadata.source "smsloop"): the lead already got the AI's
+  // confirmation, so switch the scenario but skip the "saw you booked" first text.
   const a0 = (p.attendees && p.attendees[0]) || {};
   await setScenario(lead?.phone || who.phone, 'booked', {
     name: lead?.name || who.name || '',
     email: lead?.email || who.email || '',
     source: lead?.source === 'booking' ? 'Knight Fit booking (no application)' : 'Knight Fit application',
-    context: { call_start: p.startTime, call_end: p.endTime, timezone: a0.timeZone || p.organizer?.timeZone || '' }
+    context: { call_start: p.startTime, call_end: p.endTime, timezone: a0.timeZone || p.organizer?.timeZone || '' },
+    ...(meta.source === 'smsloop' ? { kickoff: false } : {})
   });
 
   const tz = p.organizer?.timeZone;
