@@ -13,17 +13,520 @@
         [
           {
             "delay_minutes": 60,
-            "data": "No rush at all, just curious what made you apply.",
-            "ai_generated": false
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
           },
           {
             "delay_minutes": 1440,
-            "data": "Hey, quick one. What's been the hardest part about getting in shape so far?",
-            "ai_generated": false
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
           },
           {
             "delay_minutes": 4320,
-            "data": "Last one from me for now. If you still want help with this, just reply here and we'll figure out a plan around your schedule and your food.",
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Last one from me for now. If you ever want help with this, just text me back here and we'll pick it up from where we left off",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "All good if now's not the time. Whenever you're ready to get this handled, just text me back here",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Still here whenever you want to pick this back up, no pressure at all",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "No worries if life's been busy. Whenever you want to get back on it, I'm one text away",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Just leaving the door open. If getting in shape moves back up the list, text me and we'll make a plan",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Hope things have been good. Whenever you're ready, I'm still happy to help you get this handled",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Not going anywhere. Whenever the timing feels right, just send me a text",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Quick reminder that I'm still here if you want help getting in shape, no pressure",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Whenever you're ready to make it happen, just reply here and we'll pick it right back up",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Last check in from me. If you ever want to get this handled, you know where to find me",
             "ai_generated": false
           }
         ]
@@ -38,7 +541,15 @@
       "opener_ai_instructions": "",
       "min_opener_delay": 60,
       "max_opener_delay": 120,
-      "followups": []
+      "followups": [
+        [
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          }
+        ]
+      ]
     },
     {
       "key": "no_show",
@@ -52,12 +563,1048 @@
       "followups": [
         [
           {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
             "delay_minutes": 1440,
-            "data": "Hey, still want to find a new time? Happy to work around your schedule.",
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Last one from me for now. Whenever you're ready to get back on track, just text me here and we'll find a time",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Still here whenever you want to grab a new time, no pressure",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "No worries if things got busy. Whenever you want to reschedule, just text me back",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Just leaving the door open. If you still want that call, reply here and we'll find a time that works",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Hope you've been good. Whenever you're ready to pick a new time, I'm here",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Not going anywhere. Whenever the timing's right, text me and we'll get you scheduled",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Quick reminder that I'm still happy to get you a new time whenever you want",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Whenever you're ready to get back on it, just reply here and we'll get something scheduled",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "No pressure at all, just here if you still want help getting in shape",
+            "ai_generated": false
+          }
+        ],
+        [
+          {
+            "delay_minutes": 60,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 360,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 960,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 1440,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 2880,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 4320,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 7200,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 14400,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 28800,
+            "data": "",
+            "ai_generated": true
+          },
+          {
+            "delay_minutes": 43200,
+            "data": "Last check in from me. If you ever want to get that call scheduled, just text me",
             "ai_generated": false
           }
         ]
       ]
     }
+  ],
+  "followup_ai_prompt": "You are Knight Nakanishi from Knight-Fit (1-on-1 online fitness coaching built around the food people grew up eating), texting a lead who went quiet. Write ONE short follow-up text.\n\nWHAT TO SAY\n- If they went quiet after you asked something, bring it back to that one open question, reworded so it never sounds copy-pasted. Do not add new questions on top.\n- If they never replied at all, write a short friendly nudge about the application they filled in (the ## LEAD FORM goal) or why they reached out.\n- If you had offered call times and they went quiet, ask if one of those still works or if another day is better, without naming any day or time.\n- If ## SCENARIO says they have a call booked: a light, friendly check-in that keeps them excited for the call with the client success manager. Never ask them to book. If the call time has already passed, keep it to a warm, general check-in.\n- If ## SCENARIO says they missed their call: zero guilt, just ask if they still want to grab a new time.\n- Reference what they already shared (their goal, their struggle, their schedule, their food) when it makes the message feel personal. Keep it light.\n- Assume they just got busy, not that they are ignoring you. Never needy, pushy or guilt-tripping, and never apologize for following up.\n- If you've already followed up several times in a row without a reply, keep it even shorter and switch the angle instead of repeating the same question: a simple yes or no question, a light \"still with me?\", or one specific thing they told you.\n\nNEVER\n- Name a specific day, date or time (\"today\", \"tomorrow\", \"2pm\", \"this weekend\"), or imply calendar urgency.\n- Mention price, cost or payment.\n- Include links, email addresses, phone numbers, or anything in square brackets.\n- Use emojis, em dashes, en dashes, ellipses, bold, or markdown.\n- Say \"hop on\" or \"jump on\" a call.\n- Re-introduce yourself or re-explain the program.\n\nSTYLE\nCasual and warm, like Knight texting from his phone. One or two short lines, at most one question. Normal sentence case. Vary the wording every time so repeated follow-ups never sound automated.\n\nGOOD EXAMPLES (adapt to the real conversation)\n- \"Hey, just circling back. You still wanting to get the fat loss handled?\"\n- \"No rush at all, what's been the hardest part about staying consistent?\"\n- \"Hey, hope the week's treating you well. Still excited for the call?\"\n\nBAD EXAMPLES (never)\n- \"Does tomorrow at 2pm work for you?\"\n- \"Just following up on my last 3 messages!!\"\n",
+  "default_followups": [
+    [
+      {
+        "delay_minutes": 60,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 360,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 960,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 1440,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 2880,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 4320,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 7200,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 14400,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 28800,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 43200,
+        "data": "Last one from me for now. If you ever want help with this, just text me back here and we'll pick it up from where we left off",
+        "ai_generated": false
+      }
+    ],
+    [
+      {
+        "delay_minutes": 60,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 360,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 960,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 1440,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 2880,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 4320,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 7200,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 14400,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 28800,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 43200,
+        "data": "All good if now's not the time. Whenever you're ready to get this handled, just text me back here",
+        "ai_generated": false
+      }
+    ],
+    [
+      {
+        "delay_minutes": 60,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 360,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 960,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 1440,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 2880,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 4320,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 7200,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 14400,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 28800,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 43200,
+        "data": "Still here whenever you want to pick this back up, no pressure at all",
+        "ai_generated": false
+      }
+    ],
+    [
+      {
+        "delay_minutes": 60,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 360,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 960,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 1440,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 2880,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 4320,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 7200,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 14400,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 28800,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 43200,
+        "data": "No worries if life's been busy. Whenever you want to get back on it, I'm one text away",
+        "ai_generated": false
+      }
+    ],
+    [
+      {
+        "delay_minutes": 60,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 360,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 960,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 1440,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 2880,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 4320,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 7200,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 14400,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 28800,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 43200,
+        "data": "Just leaving the door open. If getting in shape moves back up the list, text me and we'll make a plan",
+        "ai_generated": false
+      }
+    ],
+    [
+      {
+        "delay_minutes": 60,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 360,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 960,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 1440,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 2880,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 4320,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 7200,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 14400,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 28800,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 43200,
+        "data": "Hope things have been good. Whenever you're ready, I'm still happy to help you get this handled",
+        "ai_generated": false
+      }
+    ],
+    [
+      {
+        "delay_minutes": 60,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 360,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 960,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 1440,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 2880,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 4320,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 7200,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 14400,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 28800,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 43200,
+        "data": "Not going anywhere. Whenever the timing feels right, just send me a text",
+        "ai_generated": false
+      }
+    ],
+    [
+      {
+        "delay_minutes": 60,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 360,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 960,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 1440,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 2880,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 4320,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 7200,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 14400,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 28800,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 43200,
+        "data": "Quick reminder that I'm still here if you want help getting in shape, no pressure",
+        "ai_generated": false
+      }
+    ],
+    [
+      {
+        "delay_minutes": 60,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 360,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 960,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 1440,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 2880,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 4320,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 7200,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 14400,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 28800,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 43200,
+        "data": "Whenever you're ready to make it happen, just reply here and we'll pick it right back up",
+        "ai_generated": false
+      }
+    ],
+    [
+      {
+        "delay_minutes": 60,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 360,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 960,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 1440,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 2880,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 4320,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 7200,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 14400,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 28800,
+        "data": "",
+        "ai_generated": true
+      },
+      {
+        "delay_minutes": 43200,
+        "data": "Last check in from me. If you ever want to get this handled, you know where to find me",
+        "ai_generated": false
+      }
+    ]
   ]
 }
