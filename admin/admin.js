@@ -1054,7 +1054,7 @@
 
   /* ================= Coach view (phone) ================= */
   // Phone-sized screens get a simple view for coaches: leads, calls and visitors in plain words.
-  // No Meta sends, attribution, exports or setup; those stay on the full panel (wider screens).
+  // Ad names (campaign › ad set › ad) are shown; Meta sends, IDs, exports and setup stay on the full panel (wider screens).
   var coachMQ = window.matchMedia ? window.matchMedia('(max-width: 860px)') : null;
   function isCoach() { return Boolean(coachMQ && coachMQ.matches); }
   function syncCoach() { document.body.classList.toggle('coach', isCoach()); }
@@ -1096,6 +1096,14 @@
     return '<div class="pills" ' + attr + '>' + list.map(function (x) {
       return '<button type="button" data-v="' + x[0] + '" class="' + (x[0] === current ? 'on' : '') + '">' + x[1] + '</button>';
     }).join('') + '</div>';
+  }
+  // "Campaign › Ad set › Ad" for a lead/visitor row, '' when it didn't come from a tagged ad.
+  function adLine(r) {
+    return [r.utm_campaign, r.utm_term, r.utm_content].filter(Boolean).join(' › ');
+  }
+  function adSub(r) {
+    var a = adLine(r);
+    return a ? '<div class="c-sub c-ad" title="' + esc(a) + '">' + esc(a) + '</div>' : '';
   }
   function bookingBadge(status) {
     return '<span class="badge bk-' + esc(status) + '">' + esc(status === 'accepted' ? 'scheduled' : String(status).replace('_', '-')) + '</span>';
@@ -1252,7 +1260,7 @@
           var line = r.next_call ? 'Call ' + callTime(r.next_call) : (r.source === 'booking' ? 'Booked ' : 'Applied ') + ago(r.created_at);
           return '<button type="button" class="c-card" data-id="' + esc(r.id) + '">' +
             '<div class="c-top"><b>' + esc(r.name || '(no name)') + '</b>' + stageBadge(r.stage) + '</div>' +
-            '<div class="c-sub">' + esc(line) + '</div></button>';
+            '<div class="c-sub">' + esc(line) + '</div>' + adSub(r) + '</button>';
         }).join('') : '<div class="c-empty">No leads here' + (q || f.stage || f.range !== 'all' ? ' with these filters' : ' yet') + '</div>';
         $$('[data-id]', view).forEach(function (c) {
           c.addEventListener('click', function () { openLead(c.getAttribute('data-id'), load); });
@@ -1380,7 +1388,7 @@
           return '<button type="button" class="c-card" data-id="' + esc(r.id) + '">' +
             '<div class="c-top"><b>' + esc(r.name || 'Visitor') + '</b><span class="c-tag' + (r.from_ad ? ' ad' : '') + '">' + (r.from_ad ? 'Ad' : 'Direct') + '</span></div>' +
             '<div class="c-sub">' + esc(video) + '</div>' +
-            '<div class="c-sub">' + esc(progress) + ' · ' + esc(ago(r.last_seen_at)) + '</div></button>';
+            '<div class="c-sub">' + esc(progress) + ' · ' + esc(ago(r.last_seen_at)) + '</div>' + adSub(r) + '</button>';
         }).join('') : '<div class="c-empty">No visitors' + (q || f.did ? ' match these filters' : ' in this time range') + '</div>';
         $$('[data-id]', view).forEach(function (c) {
           c.addEventListener('click', function () { location.hash = '#/visitor/' + encodeURIComponent(c.getAttribute('data-id')); });
@@ -1415,6 +1423,7 @@
       var v = d.visitor;
       var lead = d.leads[0];
       var fromAd = Boolean(v.utm_campaign || v.fbclid);
+      var adRows = [['Campaign', v.utm_campaign], ['Ad set', v.utm_term], ['Ad', v.utm_content]].filter(function (x) { return x[1]; });
       var sessions = [];
       var byId = {};
       d.events.forEach(function (e) {
@@ -1441,6 +1450,9 @@
         '<div class="ph"><div><h1>' + esc(lead && lead.name ? lead.name : 'Visitor') + '</h1>' +
         '<div class="sub">' + (fromAd ? 'Came from an ad' : 'Came directly') + ' · first visit ' + esc(day(v.first_seen_at)) + '</div></div>' +
         (lead ? '<button class="btn" data-lead="' + esc(lead.id) + '">Open lead</button>' : '') + '</div>' +
+        (adRows.length ? '<div class="card" style="margin-bottom:14px"><div class="kv">' + adRows.map(function (x) {
+          return '<div><div class="k">' + x[0] + '</div><div class="v">' + esc(x[1]) + '</div></div>';
+        }).join('') + '</div></div>' : '') +
         '<div class="card">' + (html || '<div class="c-empty">Nothing to show yet</div>') + '</div>';
 
       var b = $('[data-lead]', view);

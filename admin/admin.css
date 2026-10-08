@@ -378,6 +378,7 @@ body.coach .ph h1 { font-size: 30px; }
 .c-top b { font-size: 16px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .c-sub { color: var(--mute); font-size: 14px; margin-top: 4px; }
 .c-sub .badge { margin-left: 4px; vertical-align: 1px; }
+.c-ad { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .c-tag { flex: none; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--mute); }
 .c-tag.ad { color: var(--amber); border-color: rgba(255, 182, 39, .45); }
 .c-empty { color: var(--dim); text-align: center; padding: 30px 12px; background: var(--card); border: 1px dashed var(--line); border-radius: 14px; }
