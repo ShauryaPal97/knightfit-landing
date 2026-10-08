@@ -250,7 +250,7 @@
   function dqReason() {
     var a = state.answers;
     if (a.invest === 'not-investing') return 'not_investing';
-    if (a.age && +a.age < (C.MIN_AGE || 23)) return 'under_min_age';
+    if (a.age && +a.age < (C.MIN_AGE || 21)) return 'under_min_age';
     return null;
   }
 
@@ -329,7 +329,7 @@
     count.textContent = '';
     backBtn.style.visibility = 'hidden';
     var why = reason === 'under_min_age'
-      ? "Right now I only coach people " + (C.MIN_AGE || 23) + " and up. That's not a knock on you, it's just where I do my best work."
+      ? "Right now I only coach people " + (C.MIN_AGE || 21) + " and up. That's not a knock on you, it's just where I do my best work."
       : "Coaching only works when you're ready to put money and time into it. No pressure at all. When that changes, come back and apply again.";
     body.innerHTML =
       '<div class="apply-done">' +

@@ -114,7 +114,7 @@ Every event fires on the browser pixel **and** server-side (CAPI) with the same 
 | `ApplicationStep` (custom) | Each question answered (`step_id`, `answer`) | Form drop-off |
 | `SubmitApplication` | Every completed application | |
 | **`Lead`** | **Qualified applications only** | **Optimize ads on this** |
-| `DisqualifiedLead` (custom) | Under 23 or not ready to invest | Exclusion audience |
+| `DisqualifiedLead` (custom) | 20 or under, or not ready to invest | Exclusion audience |
 | **`Schedule`** | Call booked in Cal.com | Optimize once volume allows |
 | **`Purchase`** | Sent manually from /admin when a lead closes | Value-based optimization later |
 

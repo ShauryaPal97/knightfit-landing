@@ -19,7 +19,7 @@ window.KF_CONFIG = {
   INSTAGRAM_URL: 'https://www.instagram.com/knightnakanishi/',
 
   // Minimum applicant age; younger applicants see the "not the right time" screen.
-  MIN_AGE: 23,
+  MIN_AGE: 21,
 
   // Serverless endpoints (Vercel /api functions).
   TRACK_ENDPOINT: '/api/track',   // analytics + Meta Conversions API mirror
