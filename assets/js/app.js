@@ -364,20 +364,65 @@
       window._wq = window._wq || [];
       window._wq.push({
         id: id,
-        onReady: function (video) {
-          var label = opts.label || id;
-          KF.track(opts.vsl ? 'ViewContent' : 'TestimonialPlay', { content_name: label, content_type: 'video', video_id: id });
-          if (!opts.vsl) return;
-          var fired = {};
-          video.bind('percentwatchedchanged', function (p) {
-            [25, 50, 75, 95].forEach(function (m) {
-              if (p * 100 >= m && !fired[m]) { fired[m] = true; KF.track('VideoProgress', { video_id: id, percent: m }); }
-            });
-          });
-          trackWatchTime(video, id);
-        }
+        onReady: function (video) { trackPlayer(video, id, opts); }
       });
     }, { once: false });
+  }
+
+  // Shared by Wistia players and the self-hosted VSL (via nativePlayer, which mimics Wistia's API).
+  function trackPlayer(video, id, opts) {
+    var label = opts.label || id;
+    KF.track(opts.vsl ? 'ViewContent' : 'TestimonialPlay', { content_name: label, content_type: 'video', video_id: id });
+    if (!opts.vsl) return;
+    var fired = {};
+    video.bind('percentwatchedchanged', function (p) {
+      [25, 50, 75, 95].forEach(function (m) {
+        if (p * 100 >= m && !fired[m]) { fired[m] = true; KF.track('VideoProgress', { video_id: id, percent: m }); }
+      });
+    });
+    trackWatchTime(video, id);
+  }
+
+  // Wraps a <video> element in the slice of Wistia's player API that the tracking uses.
+  // Seconds watched = unique seconds played (video.played ranges), same as Wistia's secondsWatched.
+  function nativePlayer(v) {
+    function watched() {
+      var t = 0;
+      for (var i = 0; i < v.played.length; i++) t += v.played.end(i) - v.played.start(i);
+      return t;
+    }
+    function duration() { return isFinite(v.duration) ? v.duration : 0; }
+    function percent() { return duration() ? Math.min(1, watched() / duration()) : 0; }
+    var EVENTS = { play: 'play', pause: 'pause', end: 'ended', secondchange: 'timeupdate', percentwatchedchanged: 'timeupdate' };
+    return {
+      secondsWatched: watched,
+      percentWatched: percent,
+      duration: duration,
+      bind: function (name, fn) {
+        v.addEventListener(EVENTS[name], function () { fn(name === 'percentwatchedchanged' ? percent() : undefined); });
+      }
+    };
+  }
+
+  function mountNativeVsl(node) {
+    node.addEventListener('click', function () {
+      if (node.classList.contains('is-playing')) return;
+      node.classList.add('is-playing');
+      var v = document.createElement('video');
+      v.src = C.VSL_SRC;
+      v.controls = true;
+      v.playsInline = true;
+      v.preload = 'auto';
+      if (C.VSL_POSTER) v.poster = C.VSL_POSTER;
+      node.innerHTML = '';
+      node.appendChild(v);
+      trackPlayer(nativePlayer(v), 'vsl', { vsl: true, label: 'VSL' });
+      var p = v.play();
+      if (p && p.catch) p.catch(function () {}); // autoplay refused: controls stay up for a manual play
+    });
+    node.addEventListener('keydown', function (e) {
+      if (e.target === node && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); node.click(); }
+    });
   }
 
   // VSL watch time for the admin: unique seconds watched + % of the video, sent every 10s of
@@ -411,18 +456,14 @@
 
   function initVideos() {
     var vsl = document.querySelector('[data-vsl]');
-    if (vsl) {
-      if (C.VSL_WISTIA_ID) {
-        vsl.classList.remove('is-empty');
-        vsl.setAttribute('data-wistia', C.VSL_WISTIA_ID);
-        var poster = C.VSL_POSTER || ('https://fast.wistia.com/embed/medias/' + C.VSL_WISTIA_ID + '/swatch');
-        vsl.innerHTML = '<img src="' + poster + '" alt="" width="1280" height="720">' +
-          '<span class="play" aria-hidden="true"></span><span class="video-cap">Tap to watch</span>';
-        vsl.setAttribute('role', 'button');
-        vsl.setAttribute('aria-label', 'Play video');
-        vsl.tabIndex = 0;
-        mountVideo(vsl, { vsl: true, label: 'VSL' });
-      }
+    if (vsl && C.VSL_SRC) {
+      vsl.classList.remove('is-empty');
+      vsl.innerHTML = '<img src="' + (C.VSL_POSTER || '/assets/img/headshot.jpg') + '" alt="" width="1280" height="720" fetchpriority="high">' +
+        '<span class="play" aria-hidden="true"></span><span class="video-cap">Tap to watch</span>';
+      vsl.setAttribute('role', 'button');
+      vsl.setAttribute('aria-label', 'Play video');
+      vsl.tabIndex = 0;
+      mountNativeVsl(vsl);
     }
     document.querySelectorAll('[data-wistia]:not([data-vsl])').forEach(function (n) {
       mountVideo(n, { label: n.getAttribute('data-name') || '' });

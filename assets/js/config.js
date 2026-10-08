@@ -4,10 +4,10 @@ window.KF_CONFIG = {
   // The Conversions API token lives server-side in Vercel env vars, never here.
   PIXEL_ID: '1421889260122179',
 
-  // Wistia media ID for the hero VSL (e.g. 'hbt4xagwap'). Leave '' to show the "video coming soon" frame.
-  VSL_WISTIA_ID: '',
-  // Optional poster image URL for the VSL (Wistia thumbnail). Falls back to Wistia's auto thumbnail.
-  VSL_POSTER: '',
+  // Self-hosted hero VSL (720p MP4 in assets/video). Leave '' to show the "video coming soon" frame.
+  VSL_SRC: '/assets/video/vsl.mp4',
+  // Thumbnail shown before play (16:9 image in assets/img). Falls back to Knight's headshot.
+  VSL_POSTER: '/assets/img/vsl-poster.jpg',
 
   // Cal.com booking link for qualified applicants: the part after cal.com/, e.g. 'knightnakanishi/consult'.
   // Leave '' until the Cal.com account exists; /booking then shows an Instagram DM fallback.

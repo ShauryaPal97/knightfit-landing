@@ -19,7 +19,7 @@ if (fs.existsSync(envFile)) {
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript',
   '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
-  '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.webp': 'image/webp'
+  '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.webp': 'image/webp', '.mp4': 'video/mp4'
 };
 
 function resolveStatic(urlPath) {
@@ -55,5 +55,19 @@ http.createServer(async (req, res) => {
   if (!file) { res.statusCode = 404; return res.end('not found'); }
   res.setHeader('Content-Type', TYPES[path.extname(file)] || 'application/octet-stream');
   res.setHeader('Cache-Control', 'no-store');
+  // Byte ranges like Vercel, so video seeking works (Safari won't play video without them).
+  const size = fs.statSync(file).size;
+  const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+  res.setHeader('Accept-Ranges', 'bytes');
+  if (range && (range[1] || range[2])) {
+    const start = range[1] ? Number(range[1]) : Math.max(0, size - Number(range[2]));
+    const end = range[1] && range[2] ? Math.min(Number(range[2]), size - 1) : size - 1;
+    if (start > end || start >= size) { res.statusCode = 416; res.setHeader('Content-Range', `bytes */${size}`); return res.end(); }
+    res.statusCode = 206;
+    res.setHeader('Content-Range', `bytes ${start}-${end}/${size}`);
+    res.setHeader('Content-Length', end - start + 1);
+    return fs.createReadStream(file, { start, end }).pipe(res);
+  }
+  res.setHeader('Content-Length', size);
   fs.createReadStream(file).pipe(res);
 }).listen(port, () => console.log(`Knight Fit dev server → http://localhost:${port}`));

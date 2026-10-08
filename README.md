@@ -15,7 +15,7 @@ Ad → index.html (VSL + inline application form) → qualified → /booking (Ca
 | `booking.html` | Cal.com inline embed, prefilled with name/email; passes visitor id, application id + UTMs as booking metadata |
 | `thank-you.html` | Post-booking page |
 | `privacy.html`, `tos.html` | Legal pages (copied from the old knightfit.io) |
-| `assets/js/config.js` | **The file to edit**: Pixel ID, VSL video ID, Cal.com link, min age |
+| `assets/js/config.js` | **The file to edit**: Pixel ID, VSL video + thumbnail, Cal.com link, min age |
 | `assets/js/tracking.js` | Meta Pixel + Conversions API mirror, UTM / ad id / fbclid capture, `_fbc`/`_fbp` cookies, first-party visitor analytics |
 | `assets/js/app.js` | Inline application form (questions, validation, disqualify rules, submit), videos, sticky CTA |
 | `assets/css/site.css` | All styles (mobile-first) |
@@ -143,12 +143,20 @@ Without `LEAD_WEBHOOK_URL` set, leads are printed to **Vercel → Logs**, so not
 
 ## Swapping in the new VSL
 
-Upload to Wistia (its heatmaps show second-by-second drop-off), then in `config.js`:
+The VSL is self-hosted (no Wistia account). Compress the new cut to 720p with the moov atom up front so it starts playing before it fully downloads:
+
+```bash
+ffmpeg -i VSL.mp4 -vf scale=-2:720 -c:v libx264 -preset slow -crf 26 -pix_fmt yuv420p -c:a aac -b:a 96k -movflags +faststart assets/video/vsl.mp4
+```
+
+Then in `config.js` (thumbnail = 16:9 image in `assets/img`):
 
 ```js
-VSL_WISTIA_ID: 'abc123xyz',
-VSL_POSTER: 'https://embed-ssl.wistia.com/deliveries/….jpg'   // optional
+VSL_SRC: '/assets/video/vsl.mp4',
+VSL_POSTER: '/assets/img/vsl-poster.jpg'
 ```
+
+Watch time, `ViewContent` and `VideoProgress` are tracked the same way as before. Bandwidth: Vercel Hobby includes 100 GB/month, roughly 5k full plays of a ~20 MB file.
 
 ## Launch checklist: confirm with Knight before ads go live
 

@@ -7,6 +7,10 @@
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }]
     },
     {
+      "source": "/assets/video/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }]
+    },
+    {
       "source": "/assets/css/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }]
     },
