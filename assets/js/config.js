@@ -11,7 +11,7 @@ window.KF_CONFIG = {
 
   // Cal.com booking link for qualified applicants: the part after cal.com/, e.g. 'knightnakanishi/consult'.
   // Leave '' until the Cal.com account exists; /booking then shows an Instagram DM fallback.
-  CAL_LINK: 'knight-fit/60min',
+  CAL_LINK: 'team/knight-fit/coaching-gameplan-call',
   // Brand colour used inside the Cal.com calendar.
   CAL_BRAND: '#ff4a2e',
 
