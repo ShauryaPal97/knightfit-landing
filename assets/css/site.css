@@ -87,6 +87,10 @@ section { padding: 44px var(--gutter); max-width: 1080px; margin: 0 auto; }
 .vsl-empty-txt p { font-weight: 500; font-size: 15px; margin-top: 6px; }
 .play { position: absolute; left: 50%; top: 50%; width: 76px; height: 76px; margin: -38px 0 0 -38px; border-radius: 50%; background: var(--chili); box-shadow: 0 0 0 9px rgba(255,74,46,.25), 0 0 40px rgba(255,74,46,.7); }
 .play::after { content: ''; position: absolute; left: 31px; top: 23px; border-left: 21px solid #fff; border-top: 15px solid transparent; border-bottom: 15px solid transparent; }
+/* Hero VSL only: orange ring ripples out from the play button. */
+.vsl .play { z-index: 1; }
+.vsl .play::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: var(--chili); z-index: -1; animation: ripple 1.6s ease-out infinite; }
+@keyframes ripple { from { transform: scale(1); opacity: .6; } to { transform: scale(1.9); opacity: 0; } }
 .video-cap { position: absolute; left: 12px; bottom: 12px; background: rgba(0,0,0,.7); padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 500; }
 .is-playing .play, .is-playing .video-cap, .is-playing .reel-n { display: none; }
 
