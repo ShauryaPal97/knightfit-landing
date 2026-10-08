@@ -61,7 +61,7 @@ function attendee(p) {
   return {
     name: str(a.name || val(r.name), 200),
     email: str(a.email || val(r.email), 200)?.toLowerCase() || null,
-    phone: str(a.phoneNumber || val(r.attendeePhoneNumber) || val(r.phone) ||
+    phone: str(a.phoneNumber || val(r.attendeePhoneNumber) || val(r.smsReminderNumber) || p.smsReminderNumber || val(r.phone) ||
       (loc && typeof loc === 'object' && /phone/i.test(loc.value || '') ? loc.optionValue : null), 50)
   };
 }

@@ -87,7 +87,8 @@
   var ph = String(app.phone || '').trim();
   var digits = ph.replace(/\D/g, '');
   if (digits.length === 10 && ph.charAt(0) !== '+') digits = '1' + digits;
-  if (digits.length >= 11) config.attendeePhoneNumber = '+' + digits;
+  // smsReminderNumber = the visible phone field when the event has an SMS reminder workflow.
+  if (digits.length >= 11) config.attendeePhoneNumber = config.smsReminderNumber = '+' + digits;
   if (app.notes) config.notes = String(app.notes).slice(0, 1000);
   if (KF.visitorId) config['metadata[visitorId]'] = KF.visitorId;
   if (app.application_id) config['metadata[applicationId]'] = app.application_id;
