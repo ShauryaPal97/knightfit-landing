@@ -88,16 +88,15 @@ Knight's SMSLoop deployment (separate Railway app, Sendblue number) texts every 
 | What happened | Knight sends | SMSLoop does |
 |---|---|---|
 | Qualified application | `POST /leads/inbound` with `scenario: "not_booked"` + the form answers | Waits 15 min, then texts: asks about goals, struggles, what they tried, and pushes them to book |
-| Call booked (or rescheduled) | `POST /leads/event` `set_scenario: "booked"` + call time | Swaps a pending "not booked" text for a warm-up text in 1-2 min; mid-chat it switches to the warm-up prompt. Booked without applying = new lead |
+| Call booked (or rescheduled) | `POST /leads/event` `set_scenario: "booked"` + call time | Swaps a pending "not booked" text for a warm-up text in 1-2 min; mid-chat it switches to the warm-up prompt |
 | No-show marked in Cal.com | `set_scenario: "no_show"` | Texts after ~30 min to rebook, no guilt |
 | Booking cancelled | `event: "ai_off"` | AI stops, coach gets a dashboard bell + email to take over |
 
-Disqualified applicants are never texted. Both env vars unset = nothing is sent.
+Disqualified applicants are never texted. Cal.com bookings without a qualified application (direct link, disqualified) are ignored entirely: no lead, no alert, no text. Both env vars unset = nothing is sent.
 
 Setup:
 1. Deploy SMSLoop for Knight (its README), connect Sendblue, copy **Settings → Integrations → Lead source** secret into `SMSLOOP_SECRET` and the service URL into `SMSLOOP_URL`.
 2. Replace `https://cal.com/REPLACE-WITH-KNIGHTS-CAL-LINK` in `smsloop/scenarios.json` (two prompts), then on the SMSLoop service: `python -m app.seed_scenarios scenarios.json` (or paste them into the dashboard). Re-running updates them; the old prompt stays as "Load Last Saved Prompt".
-3. The Cal.com event must ask for a **phone number** (attendee phone), otherwise people who book without applying can't be texted.
 
 ## Tracking
 

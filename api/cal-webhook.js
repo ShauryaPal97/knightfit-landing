@@ -2,6 +2,7 @@
 // Verifies x-cal-signature-256 (HMAC-SHA256 of the raw body with CAL_WEBHOOK_SECRET), then stores the
 // booking, links it to the lead/visitor and moves the lead's stage. Each change is also sent to SMSLoop
 // (booked → "booked" scenario, no-show → "no_show", cancelled → AI off + coach alert).
+// Only bookings from a qualified applicant count; anything else (direct Cal.com link, disqualified) is ignored.
 import crypto from 'node:crypto';
 import { send, str } from './_util.js';
 import { db } from './_db.js';
@@ -84,6 +85,16 @@ async function findLead(sql, meta, email) {
   return null;
 }
 
+// Stage alone isn't enough: older bookings overwrote a disqualified lead's stage, so check dq_reason too.
+function qualified(lead) {
+  return Boolean(lead && lead.source === 'application' && lead.stage !== 'disqualified' && !lead.dq_reason);
+}
+
+async function bookingIsQualified(sql, uid) {
+  const [l] = await sql`SELECT l.* FROM bookings b JOIN leads l ON l.id = b.lead_id WHERE b.uid = ${uid}`;
+  return qualified(l);
+}
+
 async function created(sql, req, p, isReschedule = false) {
   const uid = str(p.uid, 120);
   if (!uid) return;
@@ -98,46 +109,20 @@ async function created(sql, req, p, isReschedule = false) {
     if (!v) vid = null;
   }
 
-  let lead = await findLead(sql, meta, who.email);
-  if (!lead) {
-    // Booked without applying (direct Cal.com link): create a lead from the booking + visitor attribution.
-    const [v] = vid ? await sql`SELECT * FROM visitors WHERE id = ${vid}` : [null];
-    const row = {
-      id: 'bk_' + uid.slice(0, 60),
-      visitor_id: vid,
-      source: 'booking',
-      stage: 'booked',
-      name: who.name,
-      email: who.email,
-      phone: who.phone,
-      utm_source: v?.utm_source || null,
-      utm_campaign: v?.utm_campaign || null,
-      utm_term: v?.utm_term || null,
-      utm_content: v?.utm_content || null,
-      campaign_id: v?.campaign_id || null,
-      adset_id: v?.adset_id || null,
-      ad_id: v?.ad_id || null,
-      lead_source: v && (v.utm_campaign || v.fbclid) ? 'ad' : null,
-      fbc: v?.fbc || null,
-      fbp: v?.fbp || null,
-      ip: v?.ip || null,
-      user_agent: v?.user_agent || null,
-      event_source_url: v?.landing_url || null
-    };
-    await sql`INSERT INTO leads ${sql(row)} ON CONFLICT (id) DO NOTHING`;
-    [lead] = await sql`SELECT * FROM leads WHERE id = ${row.id}`;
-  } else {
-    if (!vid) vid = lead.visitor_id;
-    await sql`UPDATE leads SET
-                stage = CASE WHEN stage IN ('showed', 'closed') THEN stage ELSE 'booked' END,
-                name = COALESCE(name, ${who.name}), email = COALESCE(email, ${who.email}), phone = COALESCE(phone, ${who.phone}),
-                visitor_id = COALESCE(visitor_id, ${vid}), updated_at = now()
-              WHERE id = ${lead.id}`;
-  }
+  const lead = await findLead(sql, meta, who.email);
+  // No qualified application behind this booking (direct Cal.com link, or disqualified): ignore it.
+  if (!qualified(lead)) return;
+
+  if (!vid) vid = lead.visitor_id;
+  await sql`UPDATE leads SET
+              stage = CASE WHEN stage IN ('showed', 'closed') THEN stage ELSE 'booked' END,
+              name = COALESCE(name, ${who.name}), email = COALESCE(email, ${who.email}), phone = COALESCE(phone, ${who.phone}),
+              visitor_id = COALESCE(visitor_id, ${vid}), updated_at = now()
+            WHERE id = ${lead.id}`;
 
   await sql`INSERT INTO bookings ${sql({
     uid,
-    lead_id: lead?.id || null,
+    lead_id: lead.id,
     visitor_id: vid,
     title: str(p.title, 300),
     start_time: p.startTime ? new Date(p.startTime) : null,
@@ -149,7 +134,7 @@ async function created(sql, req, p, isReschedule = false) {
     raw: sql.json(p)
   })} ON CONFLICT (uid) DO NOTHING`;
 
-  if (lead && vid) {
+  if (vid) {
     // Link the browser's Schedule event (fired on the booking page) to this lead.
     const [s] = await sql`SELECT event_id, status, created_at FROM meta_sends
                           WHERE event_name = 'Schedule' AND visitor_id = ${vid} ORDER BY created_at DESC LIMIT 1`;
@@ -161,17 +146,16 @@ async function created(sql, req, p, isReschedule = false) {
     }
   }
 
-  await timeline(sql, vid, 'booking_created', { uid, start_time: p.startTime, lead_id: lead?.id });
+  await timeline(sql, vid, 'booking_created', { uid, start_time: p.startTime, lead_id: lead.id });
 
   // Booked (or rescheduled: same scenario, SMSLoop only refreshes the call time).
-  // Booked without applying → SMSLoop creates the lead from this.
   // Booked BY SMSLoop's AI in the chat (metadata.source "smsloop"): the lead already got the AI's
   // confirmation, so switch the scenario but skip the "saw you booked" first text.
   const a0 = (p.attendees && p.attendees[0]) || {};
-  await setScenario(lead?.phone || who.phone, 'booked', {
-    name: lead?.name || who.name || '',
-    email: lead?.email || who.email || '',
-    source: lead?.source === 'booking' ? 'Knight Fit booking (no application)' : 'Knight Fit application',
+  await setScenario(lead.phone || who.phone, 'booked', {
+    name: lead.name || who.name || '',
+    email: lead.email || who.email || '',
+    source: 'Knight Fit application',
     context: { call_start: p.startTime, call_end: p.endTime, timezone: a0.timeZone || p.organizer?.timeZone || '' },
     ...(meta.source === 'smsloop' ? { kickoff: false } : {})
   });
@@ -180,12 +164,12 @@ async function created(sql, req, p, isReschedule = false) {
   await Promise.all([sendAlert('booked', `Call booked: ${who.name || who.email || 'someone'}`, [
     ['When', fmtTime(p.startTime, p.organizer?.timeZone)],
     ['Name', who.name], ['Email', who.email], ['Phone', who.phone],
-    ['Lead', lead ? (lead.source === 'booking' ? 'New (booked without applying)' : 'Applied ' + fmtDate(lead.created_at)) : null],
-    ['Campaign', lead?.utm_campaign], ['Ad set', lead?.utm_term], ['Ad', lead?.utm_content]
+    ['Lead', 'Applied ' + fmtDate(lead.created_at)],
+    ['Campaign', lead.utm_campaign], ['Ad set', lead.utm_term], ['Ad', lead.utm_content]
   ], adminLink(req, '/bookings')), sendPush('booked', {
     title: isReschedule ? 'Call rescheduled' : 'Call booked',
     body: [who.name || who.email, fmtShort(p.startTime, tz)].filter(Boolean).join(' · '),
-    url: pushUrl(lead?.id),
+    url: pushUrl(lead.id),
     tag: 'booking-' + uid
   })]);
 }
@@ -204,7 +188,7 @@ async function rescheduled(sql, req, p) {
 
 async function cancelled(sql, req, p) {
   const uid = str(p.uid, 120);
-  if (!uid) return;
+  if (!uid || !(await bookingIsQualified(sql, uid))) return;
   const [b] = await sql`UPDATE bookings SET status = 'cancelled', updated_at = now() WHERE uid = ${uid} RETURNING *`;
   if (!b) return;
   if (b.lead_id) {
@@ -234,7 +218,7 @@ async function cancelled(sql, req, p) {
 
 async function noShow(sql, p) {
   const uid = str(p.bookingUid || p.uid, 120);
-  if (!uid) return;
+  if (!uid || !(await bookingIsQualified(sql, uid))) return;
   const flagged = (p.attendees || []).some((a) => a.noShow);
   const [b] = await sql`UPDATE bookings SET status = ${flagged ? 'no_show' : 'accepted'}, updated_at = now() WHERE uid = ${uid} RETURNING *`;
   if (b?.lead_id && flagged) await sql`UPDATE leads SET stage = 'no_show', updated_at = now() WHERE id = ${b.lead_id} AND stage IN ('applied', 'booked')`;
