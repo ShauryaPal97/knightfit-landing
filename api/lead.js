@@ -6,6 +6,7 @@ import { db } from './_db.js';
 import { sendAlert, adminLink } from './_mail.js';
 import { sendPush } from './_push.js';
 import { smsloopPost, applicationToSmsloop } from './_smsloop.js';
+import { dqReason } from './_dq.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return send(res, 405, { error: 'method_not_allowed' });
@@ -17,6 +18,10 @@ export default async function handler(req, res) {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
     return send(res, 400, { error: 'invalid_lead' });
   }
+
+  // Never trust the page's verdict alone.
+  const dq = lead.dq_reason || dqReason(lead.answers);
+  if (dq) { lead.lead_status = 'disqualified'; lead.dq_reason = dq; }
 
   const enriched = {
     ...lead,

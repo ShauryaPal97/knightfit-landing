@@ -46,7 +46,7 @@
         { n: 'name', l: 'Full name', req: true, ph: 'Your name', ac: 'name' },
         { n: 'email', l: 'Email', type: 'email', inputmode: 'email', req: true, ph: 'you@email.com', ac: 'email' },
         { n: 'phone', l: 'Phone', type: 'tel', inputmode: 'tel', req: true, ph: '(555) 555-5555', ac: 'tel' },
-        { n: 'instagram', l: 'Instagram', req: true, ph: '@yourhandle', ac: 'off' }
+        { n: 'instagram', l: 'Instagram (optional)', ph: '@yourhandle', ac: 'off' }
       ] }
   ];
 
@@ -247,11 +247,23 @@
     return ok;
   }
 
+  // No steady income → can't pay for coaching. Mirrored server-side in api/_dq.js; keep in sync.
+  var OCCUPATION_DQ = [
+    ['on_benefits', /\bdisabled\b|\bon disability\b|\bdisability (benefits|pension|payments?)\b|\bss(i|di)\b|\bon benefits\b|\bwelfare\b|\bcan'?t work\b|\bunable to work\b/],
+    ['unemployed', /\bunemploy|\bjobless\b|\bno (job|work|income)\b|\bnot (currently )?working\b|\bout of work\b|\bbetween jobs\b|\blooking for (a )?(job|work)\b|\bjob ?hunting\b|^(none|nothing|n\/?a|no|-+)\.?$/],
+    ['student', /\bstudent\b/]
+  ];
+  function occupationDq(text) {
+    var t = String(text || '').toLowerCase().trim();
+    for (var i = 0; i < OCCUPATION_DQ.length; i++) if (OCCUPATION_DQ[i][1].test(t)) return OCCUPATION_DQ[i][0];
+    return null;
+  }
+
   function dqReason() {
     var a = state.answers;
     if (a.invest === 'not-investing') return 'not_investing';
     if (a.age && +a.age < (C.MIN_AGE || 21)) return 'under_min_age';
-    return null;
+    return occupationDq(a.occupation);
   }
 
   function submit() {
@@ -330,6 +342,8 @@
     backBtn.style.visibility = 'hidden';
     var why = reason === 'under_min_age'
       ? "Right now I only coach people " + (C.MIN_AGE || 21) + " and up. That's not a knock on you, it's just where I do my best work."
+      : reason === 'on_benefits' || reason === 'unemployed' || reason === 'student'
+      ? "Coaching is a real investment, and right now I only take on clients with a steady income to put toward it. That's not a knock on you. When that changes, come back and apply again."
       : "Coaching only works when you're ready to put money and time into it. No pressure at all. When that changes, come back and apply again.";
     body.innerHTML =
       '<div class="apply-done">' +

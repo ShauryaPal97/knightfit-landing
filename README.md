@@ -7,6 +7,8 @@ Ad → index.html (VSL + inline application form) → qualified → /booking (Ca
                                           → disqualified → "not the right time" screen (Instagram link)
 ```
 
+Disqualified = not ready to invest, under 21, or "What do you do for work?" mentions no income (unemployed, disabled / on benefits, student). Rules live in `assets/js/app.js` and are re-checked server-side in `api/_dq.js` (keep both in sync).
+
 ## Files
 
 | Path | What it is |
