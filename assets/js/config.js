@@ -2,7 +2,7 @@
 window.KF_CONFIG = {
   // Meta Pixel ID (Events Manager → Data sources). Leave '' to disable the browser pixel.
   // The Conversions API token lives server-side in Vercel env vars, never here.
-  PIXEL_ID: '1421889260122179',
+  PIXEL_ID: '940601588771618',
 
   // Self-hosted hero VSL (720p MP4 in assets/video). Leave '' to show the "video coming soon" frame.
   VSL_SRC: '/assets/video/vsl.mp4',
