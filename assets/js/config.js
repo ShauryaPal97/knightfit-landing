@@ -8,6 +8,8 @@ window.KF_CONFIG = {
   VSL_SRC: '/assets/video/vsl.mp4',
   // Thumbnail shown before play (16:9 image in assets/img). Falls back to Knight's headshot.
   VSL_POSTER: '/assets/img/vsl-poster.jpg',
+  // Application form stays locked until this many seconds of the VSL are watched (remembered per browser). 0 = no lock.
+  VSL_UNLOCK_SECONDS: 20,
 
   // Cal.com booking link for qualified applicants: the part after cal.com/, e.g. 'knightnakanishi/consult'.
   // Leave '' until the Cal.com account exists; /booking then shows an Instagram DM fallback.

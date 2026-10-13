@@ -170,6 +170,13 @@ section { padding: 44px var(--gutter); max-width: 1080px; margin: 0 auto; }
 .apply-label { text-align: center; font-size: 14px; color: var(--mute); margin-bottom: 10px; }
 .apply-label b { color: var(--amber); text-transform: uppercase; letter-spacing: .1em; font-size: 13px; }
 .apply-card { background: linear-gradient(180deg, #2a1e18, var(--card)); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 0 0 1px rgba(255,182,39,.12) inset, 0 40px 80px -40px rgba(0,0,0,.8); min-height: 470px; scroll-margin-top: 12px; }
+.apply-card { position: relative; }
+.apply-card > * { transition: filter .35s ease, opacity .35s ease; }
+.apply-card.is-locked > :not(.apply-lock) { filter: blur(6px); opacity: .5; pointer-events: none; user-select: none; -webkit-user-select: none; }
+.apply-lock { position: absolute; inset: 0; z-index: 2; display: grid; place-content: center; justify-items: center; gap: 14px; padding: 24px; text-align: center; border-radius: inherit; background: rgba(19,14,12,.35); transition: opacity .35s ease; }
+.apply-card:not(.is-locked) .apply-lock { opacity: 0; pointer-events: none; }
+.apply-lock-icon { display: grid; place-items: center; width: 60px; height: 60px; border-radius: 50%; color: var(--amber); background: rgba(255,182,39,.12); border: 1.5px solid rgba(255,182,39,.45); }
+.apply-lock-msg { font-weight: 700; font-size: 18px; max-width: 18em; }
 .apply-top { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 0; }
 .apply-back { width: 44px; height: 44px; border: 0; background: none; border-radius: 50%; font-size: 24px; line-height: 1; color: var(--mute); cursor: pointer; }
 .apply-back:hover { color: var(--text); background: var(--card-2); }

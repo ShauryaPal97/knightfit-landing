@@ -53,6 +53,12 @@
   var state = { i: 0, answers: {}, source: '', started: false, submitting: false, done: false };
   var card, body, bar, count, backBtn;
 
+  // Form locked until UNLOCK_SECS of the VSL are watched; remembered per browser.
+  var UNLOCK_SECS = Number(C.VSL_UNLOCK_SECONDS) || 0;
+  var locked = false;
+  try { locked = Boolean(C.VSL_SRC) && UNLOCK_SECS > 0 && localStorage.getItem('kf_vsl_ok') !== '1'; } catch (e) {}
+  var vslPlayer = null; // <video> once the VSL is mounted
+
   function h(tag, attrs, html) {
     var e = document.createElement(tag);
     if (attrs) Object.keys(attrs).forEach(function (k) {
@@ -85,11 +91,44 @@
     backBtn = card.querySelector('.apply-back');
     backBtn.addEventListener('click', back);
     render();
+    if (locked) lockForm();
+  }
+
+  function lockForm() {
+    card.classList.add('is-locked');
+    card.querySelectorAll('.apply-top, .apply-progress, .apply-body').forEach(function (el) { el.setAttribute('inert', ''); });
+    var lock = h('div', { class: 'apply-lock' },
+      '<span class="apply-lock-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>' +
+      '<p class="apply-lock-msg">Watch the VSL first to apply</p>' +
+      '<button type="button" class="btn">Play video</button>');
+    lock.querySelector('button').addEventListener('click', function () { playVsl(true); });
+    card.appendChild(lock);
+  }
+
+  function unlock() {
+    if (!locked) return;
+    locked = false;
+    try { localStorage.setItem('kf_vsl_ok', '1'); } catch (e) {}
+    if (!card) return;
+    card.querySelectorAll('[inert]').forEach(function (el) { el.removeAttribute('inert'); });
+    card.classList.remove('is-locked');
+    var lock = card.querySelector('.apply-lock');
+    if (lock) setTimeout(function () { lock.remove(); }, 400);
+  }
+
+  // Bring the VSL into view; start it when the visitor tapped something (autoplay needs a gesture).
+  function playVsl(autoplay) {
+    var node = document.querySelector('[data-vsl]');
+    if (!node) return;
+    node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!autoplay) return;
+    if (!node.classList.contains('is-playing')) node.click();
+    else if (vslPlayer && vslPlayer.paused) { var p = vslPlayer.play(); if (p && p.catch) p.catch(function () {}); }
   }
 
   // First real interaction with the form.
   function markStarted() {
-    if (state.started) return;
+    if (state.started || locked) return;
     state.started = true;
     KF.track('ApplicationStart', { source: state.source || 'inline' });
   }
@@ -105,6 +144,7 @@
   function scrollToForm(source) {
     state.source = source;
     KF.track('ApplyClick', { source: source });
+    if (locked) { playVsl(source !== 'deeplink'); return; }
     if (!card) return;
     card.scrollIntoView({ behavior: 'smooth', block: 'start' });
     var first = card.querySelector('input, .apply-opt');
@@ -430,7 +470,13 @@
       if (C.VSL_POSTER) v.poster = C.VSL_POSTER;
       node.innerHTML = '';
       node.appendChild(v);
-      trackPlayer(nativePlayer(v), 'vsl', { vsl: true, label: 'VSL' });
+      vslPlayer = v;
+      var player = nativePlayer(v);
+      trackPlayer(player, 'vsl', { vsl: true, label: 'VSL' });
+      if (locked) {
+        v.addEventListener('timeupdate', function () { if (player.secondsWatched() >= UNLOCK_SECS) unlock(); });
+        v.addEventListener('error', unlock); // video won't load: never block the form
+      }
       var p = v.play();
       if (p && p.catch) p.catch(function () {}); // autoplay refused: controls stay up for a manual play
     });
