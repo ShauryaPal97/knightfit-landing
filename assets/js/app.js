@@ -46,7 +46,7 @@
         { n: 'name', l: 'Full name', req: true, ph: 'Your name', ac: 'name' },
         { n: 'email', l: 'Email', type: 'email', inputmode: 'email', req: true, ph: 'you@email.com', ac: 'email' },
         { n: 'phone', l: 'Phone', type: 'tel', inputmode: 'tel', req: true, ph: '(555) 555-5555', ac: 'tel' },
-        { n: 'instagram', l: 'Instagram (optional)', ph: '@yourhandle', ac: 'off' }
+        { n: 'instagram', l: 'Instagram', req: true, ph: '@yourhandle', ac: 'off' }
       ] }
   ];
 
