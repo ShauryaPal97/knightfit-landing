@@ -10,6 +10,10 @@ window.KF_CONFIG = {
   VSL_POSTER: '/assets/img/vsl-poster.jpg',
   // Application form stays locked until this many seconds of the VSL are watched (remembered per browser). 0 = no lock.
   VSL_UNLOCK_SECONDS: 20,
+  // "Confirm your call by SMS" video on /thank-you (MP4 in assets/video). Leave '' to hide it.
+  CONFIRM_VIDEO_SRC: '/assets/video/confirm.mp4',
+  // Thumbnail shown before play (16:9 image in assets/img). Falls back to Knight's headshot.
+  CONFIRM_VIDEO_POSTER: '/assets/img/confirm-poster.jpg',
 
   // Cal.com booking link for qualified applicants: the part after cal.com/, e.g. 'knightnakanishi/consult'.
   // Leave '' until the Cal.com account exists; /booking then shows an Instagram DM fallback.

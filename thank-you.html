@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/site.css?v=20261005">
+  <link rel="stylesheet" href="/assets/css/site.css?v=20261014">
   <script src="/assets/js/config.js"></script>
   <script src="/assets/js/tracking.js"></script>
 </head>
@@ -23,10 +23,11 @@
 <main>
   <section class="page">
     <div class="steps-done" aria-hidden="true"><span></span><span></span></div>
-    <h1>You're booked. <span class="hl-amber">Talk soon.</span></h1>
-    <p class="lede">Check your email for the calendar invite. Here's how to get the most out of the call:</p>
+    <h1 id="ty-h1">You're booked. <span class="hl-amber">Talk soon.</span></h1>
+    <p class="lede" id="ty-lede">Check your email for the calendar invite. Here's how to get the most out of the call:</p>
+    <div class="video vsl confirm-video" data-confirm-video hidden></div>
     <ol class="next-steps">
-      <li><b>Add it to your calendar</b> so it doesn't get buried. The invite has the link.</li>
+      <li><b>Reply to our text message.</b> We just sent you a message for your booking confirmation.</li>
       <li><b>Think about a normal week of eating.</b> What's on the table at home, what you grab at work, what Sunday looks like. No need to clean it up.</li>
       <li><b>Show up somewhere you can talk.</b> It's a real conversation about your goals and what's been getting in the way.</li>
     </ol>
@@ -39,6 +40,63 @@
 </footer>
 <script>
   document.getElementById('ig').addEventListener('click', function () { KF.track('InstagramClick', { from: 'thank_you' }); });
+
+  // "Confirm your call by SMS" video. Hidden until CONFIRM_VIDEO_SRC is set in config.js.
+  (function () {
+    var C = window.KF_CONFIG || {};
+    var node = document.querySelector('[data-confirm-video]');
+    if (!node || !C.CONFIRM_VIDEO_SRC) return;
+    var poster = C.CONFIRM_VIDEO_POSTER || '/assets/img/headshot.jpg';
+    document.getElementById('ty-h1').innerHTML = '<span class="hl-chili">Your booking is not confirmed!</span> <span class="hl-amber">One last step&nbsp;→</span>';
+    document.getElementById('ty-lede').textContent = 'Watch this quick video so your spot is locked in.';
+    var v = document.createElement('video');
+    v.src = C.CONFIRM_VIDEO_SRC;
+    v.controls = true;
+    v.playsInline = true;
+    v.preload = 'auto';
+    v.poster = poster;
+    node.classList.add('is-playing');
+    node.appendChild(v);
+    node.hidden = false;
+
+    var tracked = false;
+    function track(sound) {
+      if (tracked) return;
+      tracked = true;
+      KF.track('ConfirmVideoPlay', { content_name: 'Confirm SMS', content_type: 'video', sound: sound });
+    }
+    function play() { var p = v.play(); return p && p.then ? p : Promise.resolve(); }
+
+    // Autoplay with sound first. Phones and in-app browsers usually block that without a tap,
+    // so fall back to muted autoplay plus a "tap for sound" button that restarts the video.
+    play().then(function () { track('auto'); }, function () {
+      v.muted = true;
+      play().then(showSoundButton, function () {
+        // Even muted autoplay blocked (e.g. iOS low power mode): native play button, with sound.
+        v.muted = false;
+        v.addEventListener('play', function () { track('tap'); }, { once: true });
+      });
+    });
+
+    function showSoundButton() {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'confirm-sound';
+      btn.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>Tap to turn on sound';
+      btn.addEventListener('click', function () {
+        v.currentTime = 0;
+        v.muted = false;
+        play().catch(function () {});
+      });
+      node.appendChild(btn);
+      // Covers the button and the native controls' unmute.
+      v.addEventListener('volumechange', function () {
+        if (v.muted) return;
+        btn.remove();
+        track('tap');
+      });
+    }
+  })();
 </script>
 </body>
 </html>
