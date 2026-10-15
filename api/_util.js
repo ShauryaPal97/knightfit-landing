@@ -23,6 +23,16 @@ export const normalizers = {
   id: (v) => v
 };
 
+// Phone in E.164 for texting. No "+" and 10 digits (or 11 starting with 1) = US/Canada,
+// same rule as booking.html and normalizers.phone. Returns null for empty values.
+export function e164Phone(v) {
+  const s = String(v ?? '').trim();
+  let d = s.replace(/\D/g, '');
+  if (!d) return null;
+  if (s.charAt(0) !== '+' && d.length === 10) d = '1' + d;
+  return '+' + d;
+}
+
 export async function readJson(req) {
   if (req.body && typeof req.body === 'object') return req.body;
   if (typeof req.body === 'string') return JSON.parse(req.body || '{}');

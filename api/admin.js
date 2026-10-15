@@ -1,11 +1,12 @@
 // /api/admin?op=… — every admin operation, behind the kf_admin session cookie.
 // One file on purpose: Vercel Hobby caps a deployment at 12 functions.
-import { readJson, send, str } from './_util.js';
+import { readJson, send, str, e164Phone } from './_util.js';
 import { db, getSettings, setSetting, TOGGLEABLE_EVENTS, autoSendOn } from './_db.js';
 import { adminConfigured, checkPassword, setSessionCookie, clearSessionCookie, isAdmin } from './_auth.js';
 import { buildUserData, sendToMeta, metaConfigured } from './_meta.js';
 import { ALERT_TYPES, smtpConfigured, envRecipients, getRecipients, normalizeRecipients, sendTestAlert, adminLink } from './_mail.js';
 import { PUSH_TYPES, pushConfigured, publicKey, getDevices, addDevice, updateDevice, removeDevice, sendTestPush } from './_push.js';
+import { smsloopConfigured, smsloopPost, applicationToSmsloop } from './_smsloop.js';
 
 const STAGES = ['applied', 'booked', 'showed', 'closed', 'no_show', 'lost', 'disqualified'];
 const LEAD_SOURCES = ['ad', 'organic', 'referral', 'dm', 'other'];
@@ -64,7 +65,7 @@ export default async function handler(req, res) {
 /* ------------------------------------------------------------------ */
 
 const OPS = {
-  overview, filters, visitors, visitor, leads, lead, updateLead, addNote, archiveLead, sendMeta,
+  overview, filters, visitors, visitor, leads, lead, updateLead, addNote, archiveLead, sendMeta, resendSmsloop,
   bookings, bookingStatus, settings, saveSettings, testAlert, pushSubscribe, pushUpdate, pushRemove, pushTest, exportCsv, deleteAll
 };
 
@@ -259,7 +260,7 @@ async function lead(sql, q) {
     FROM meta_sends
     WHERE lead_id = ${id} ${ids.length ? sql`OR event_id IN ${sql(ids)}` : sql``}
     ORDER BY created_at DESC LIMIT 100`;
-  return { lead: l, visitor: v, notes, bookings: bookingRows, sends, metaConfigured: metaConfigured() };
+  return { lead: l, visitor: v, notes, bookings: bookingRows, sends, metaConfigured: metaConfigured(), smsloopConfigured: smsloopConfigured() };
 }
 
 async function updateLead(sql, q, body) {
@@ -272,6 +273,7 @@ async function updateLead(sql, q, body) {
   }
   for (const k of ['name', 'email', 'phone', 'instagram', 'plan']) if (k in f) set[k] = str(f[k], 200);
   if ('email' in set && set.email) set.email = set.email.toLowerCase();
+  if ('phone' in set) set.phone = e164Phone(set.phone);
   if ('lead_source' in f) {
     if (f.lead_source && !LEAD_SOURCES.includes(f.lead_source)) throw new HttpError(400, 'Invalid lead source');
     set.lead_source = f.lead_source || null;
@@ -355,6 +357,24 @@ async function sendMeta(sql, q, body) {
 
   if (r.ok) await sql`UPDATE leads SET ${sql(sentCol)} = now(), updated_at = now() WHERE id = ${id}`;
   return { ok: r.ok, status: r.status, error: r.error, response: r.response };
+}
+
+// Hand a lead to SMSLoop again (e.g. after fixing a bad phone number). Same payload as a new application.
+async function resendSmsloop(sql, q, body) {
+  const id = str(body.id, 80);
+  const [l] = await sql`SELECT * FROM leads WHERE id = ${id}`;
+  if (!l) throw new HttpError(404, 'Lead not found');
+  if (l.stage === 'disqualified') throw new HttpError(400, 'Disqualified leads are never texted');
+  const phone = e164Phone(l.phone);
+  if (!phone) throw new HttpError(400, 'Lead has no phone number');
+  if (!smsloopConfigured()) throw new HttpError(400, 'SMSLoop isn\'t set up (SMSLOOP_URL / SMSLOOP_SECRET)');
+  if (phone !== l.phone) await sql`UPDATE leads SET phone = ${phone}, updated_at = now() WHERE id = ${id}`;
+  const r = await smsloopPost('/leads/inbound', applicationToSmsloop({
+    contact: { name: l.name, email: l.email, phone, instagram: l.instagram },
+    answers: l.answers || {},
+    application_id: l.id
+  }));
+  return { ok: Boolean(r), phone };
 }
 
 async function bookings(sql, q) {

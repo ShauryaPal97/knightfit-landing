@@ -3,6 +3,8 @@
 // Does nothing until SMSLOOP_URL and SMSLOOP_SECRET are set. Never throws: texting must not break
 // the request that triggered it.
 
+import { e164Phone } from './_util.js';
+
 const TIMEOUT_MS = 4000;
 
 export function smsloopConfigured() {
@@ -11,6 +13,8 @@ export function smsloopConfigured() {
 
 export async function smsloopPost(path, body) {
   if (!smsloopConfigured() || !body?.phone) return null;
+  // SMSLoop reads a bare 10-digit number's area code as a country code, so always send E.164.
+  body = { ...body, phone: e164Phone(body.phone) };
   const url = process.env.SMSLOOP_URL.replace(/\/+$/, '') + path;
   try {
     const r = await fetch(url, {

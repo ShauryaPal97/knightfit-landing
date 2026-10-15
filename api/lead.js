@@ -1,7 +1,7 @@
 // POST /api/lead — receives a completed application, stores it as a lead in Postgres,
 // emails an alert, hands qualified applicants to SMSLoop for AI texting (if SMSLOOP_URL is set),
 // and forwards it to LEAD_WEBHOOK_URL (GoHighLevel, Zapier, Make, Apps Script…) if set.
-import { readJson, clientIp, send, readCookie, str } from './_util.js';
+import { readJson, clientIp, send, readCookie, str, e164Phone } from './_util.js';
 import { db } from './_db.js';
 import { sendAlert, adminLink } from './_mail.js';
 import { sendPush } from './_push.js';
@@ -22,6 +22,9 @@ export default async function handler(req, res) {
   // Never trust the page's verdict alone.
   const dq = lead.dq_reason || dqReason(lead.answers);
   if (dq) { lead.lead_status = 'disqualified'; lead.dq_reason = dq; }
+
+  // Visitors often skip the "+1": store and forward one E.164 number everywhere.
+  if (lead.contact.phone) lead.contact.phone = e164Phone(lead.contact.phone);
 
   const enriched = {
     ...lead,

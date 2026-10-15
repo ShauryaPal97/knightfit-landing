@@ -675,6 +675,12 @@
           '<div class="muted mt" style="font-size:12px">Lead and Schedule reuse the browser\'s event ID when there is one, so Meta merges them with any automatic copy instead of counting twice.</div>' +
         '</section>' +
 
+        (l.stage !== 'disqualified' && l.phone ? '<section><h3>SMSLoop</h3>' +
+          (d.smsloopConfigured ? '' : '<div class="muted" style="margin-bottom:10px">SMSLoop isn\'t set up yet (SMSLOOP_URL / SMSLOOP_SECRET).</div>') +
+          '<div class="muted" style="margin-bottom:10px">Fix the phone above first if it\'s wrong. No "+" and 10 digits is sent as a US number (+1).</div>' +
+          '<button class="btn ghost sm" data-smsloop' + (d.smsloopConfigured ? '' : ' disabled') + '>Resend to SMSLoop</button>' +
+        '</section>' : '') +
+
         '<section><h3>Contact & deal</h3><form class="form-grid" data-form>' +
           field('name', 'Name', l.name) + field('email', 'Email', l.email, 'email') +
           field('phone', 'Phone', l.phone, 'tel') + field('instagram', 'Instagram', l.instagram) +
@@ -717,6 +723,20 @@
 
       $$('[data-send]', dr).forEach(function (btn) {
         btn.addEventListener('click', function () { sendMeta(l, btn.getAttribute('data-send'), dr, false); });
+      });
+
+      var sl = $('[data-smsloop]', dr);
+      if (sl) sl.addEventListener('click', function () {
+        if (!window.confirm('Send ' + (l.name || 'this lead') + ' (' + l.phone + ') to SMSLoop again?\n\nSMSLoop will text them as a new application.')) return;
+        sl.disabled = true; sl.textContent = 'Sending…';
+        api('resendSmsloop', null, { id: l.id }).then(function (r) {
+          if (r.ok) toast('Sent to SMSLoop as ' + r.phone);
+          else toast('SMSLoop didn\'t accept it (check Vercel logs)', true);
+          renderLead(l.id, dr);
+        }).catch(function (e) {
+          toast(e.message, true);
+          renderLead(l.id, dr);
+        });
       });
     }).catch(function (e) {
       if (e.message !== 'unauthorized') dr.innerHTML = '<div class="dh"><h2>Error</h2><button class="x" data-close>✕</button></div><p>' + esc(e.message) + '</p>';
